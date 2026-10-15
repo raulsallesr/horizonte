@@ -33,6 +33,7 @@ O workflow é idempotente: se a release da tag já existir, encerra sem duplicá
 
 ## Evidências e incidentes
 
+- estado de retomada, decisões e próximas ações: `CONTEXT.md`;
 - relatórios Playwright e Lighthouse: artefato `relatorios-qualidade` de cada execução;
 - mudanças visíveis: `CHANGELOG.md`;
 - decisões e riscos conhecidos: `docs/REGISTRO_MELHORIAS_2026-10-15.md`;

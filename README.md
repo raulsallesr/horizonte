@@ -113,6 +113,7 @@ O motor de cálculo fica em [`src/engine`](src/engine) (TypeScript puro, com tes
 
 ## Documentação técnica
 
+- [Contexto para continuidade entre sessões](CONTEXT.md)
 - [Arquitetura e fluxo de dados](docs/ARQUITETURA.md)
 - [Regras do modelo financeiro](docs/MODELO_FINANCEIRO.md)
 - [Estratégia de testes e validação](docs/VALIDACAO.md)
