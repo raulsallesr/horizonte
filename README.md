@@ -7,6 +7,64 @@ Tudo roda **no seu navegador**: sem servidor, sem cadastro, sem enviar dado nenh
 
 > Os valores que aparecem ao abrir são **fictícios** (a "Marina", 30 anos). Mude qualquer número no painel e tudo recalcula na hora.
 
+## ▶️ Como usar (escolha um caminho)
+
+### Caminho 1 — Só abrir o site (não instala nada)
+
+👉 **https://raulsallesr.github.io/horizonte/**
+
+Abra no navegador (computador ou celular), mude os números no painel e veja tudo recalcular na hora. É o jeito para quem só quer usar.
+
+### Caminho 2 — Rodar no seu computador (para editar o código)
+
+Só precisa disso se você quer **mexer no projeto**. Siga na ordem, **no Windows**:
+
+**Passo 1 — Instalar o Node.js (uma vez só).** Baixe a versão **LTS** em https://nodejs.org, instale clicando em "Próximo" até o fim e **feche e abra de novo** o terminal.
+
+**Passo 2 — Baixar o projeto.** Opção A, com Git:
+
+```bash
+git clone https://github.com/raulsallesr/horizonte.git
+```
+
+Opção B, sem Git: na página do repositório clique em **Code → Download ZIP** e extraia a pasta.
+
+**Passo 3 — Abrir o terminal dentro da pasta do projeto.**
+
+```bash
+cd horizonte
+```
+
+**Passo 4 — Instalar as dependências (uma vez só, leva ~1 minuto).**
+
+```bash
+npm install
+```
+
+**Passo 5 — Ligar o projeto.**
+
+```bash
+npm run dev
+```
+
+O terminal mostra algo como `Local: http://localhost:5173/`. **Abra esse endereço no navegador.** Pronto: ao salvar qualquer arquivo, a página atualiza sozinha. Para desligar, volte ao terminal e aperte `Ctrl + C`.
+
+**Outros comandos úteis:**
+
+```bash
+npm test
+```
+
+Roda os testes do motor de cálculo.
+
+```bash
+npm run build
+```
+
+Gera o site pronto na pasta `dist/`.
+
+> **Deu erro?** `npm não é reconhecido` = o Node não foi instalado ou o terminal não foi reaberto depois da instalação. `porta 5173 em uso` = já há outro Horizonte rodando; feche-o ou aperte `Ctrl + C` no terminal dele.
+
 ## O que ele faz
 
 - **Três cenários lado a lado** (pessimista, base, otimista), cada um com a sua rentabilidade líquida.
@@ -31,17 +89,6 @@ Passo **mensal**; taxas anuais viram mensais por `(1 + a)^(1/12) − 1`.
 6. **Monte Carlo**: retornos mensais normais com a média e a volatilidade do cenário Base, semente fixa (resultado reproduzível), rodando em um Web Worker.
 
 O motor de cálculo fica em [`src/engine`](src/engine) (TypeScript puro, com testes em `engine.test.ts`).
-
-## Rodando localmente
-
-Precisa de [Node.js](https://nodejs.org) 22 ou superior.
-
-```bash
-npm install
-npm run dev      # servidor local em http://localhost:5173
-npm test         # testes do motor de cálculo
-npm run build    # gera a pasta dist/
-```
 
 ## Publicando no GitHub Pages
 
