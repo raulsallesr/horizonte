@@ -151,7 +151,8 @@ export function alternativasParaMeta(p: Premissas, meta: ResultadoMeta): Alterna
   }
 }
 
-export function diagnosticarPlano(p: Premissas, serieBase = projetar(p, 'base')): DiagnosticoPlano {
+/** Leitura imediata do plano, sem as buscas iterativas usadas nas recomendações. */
+export function diagnosticoBasico(p: Premissas, serieBase = projetar(p, 'base')): DiagnosticoPlano {
   const liberdadeNoPrazo = patrimonioNaIdade(p, serieBase, p.idadeParar, true) + TOLERANCIA >= numeroLiberdade(p)
   const duraAteOHorizonte = serieBase.esgotouNaFaseDeSaqueK < 0
   const metasPendentes = serieBase.metas.filter((meta) => meta.status !== 'realizada')
@@ -164,10 +165,21 @@ export function diagnosticarPlano(p: Premissas, serieBase = projetar(p, 'base'))
     duraAteOHorizonte,
     metasPendentes,
     aporteAtualHoje: aporteMensalHoje(p),
+    aporteMinimoHoje: null,
+    idadeViavel: null,
+    despesaSustentavelHoje: null,
+    alternativasMetas: [],
+  }
+}
+
+export function diagnosticarPlano(p: Premissas, serieBase = projetar(p, 'base')): DiagnosticoPlano {
+  const basico = diagnosticoBasico(p, serieBase)
+  return {
+    ...basico,
     aporteMinimoHoje: aporteMinimoParaPlano(p),
     idadeViavel: idadeViavelParaParar(p),
     despesaSustentavelHoje: despesaSustentavelParaPlano(p),
-    alternativasMetas: metasPendentes.map((meta) => alternativasParaMeta(p, meta)),
+    alternativasMetas: basico.metasPendentes.map((meta) => alternativasParaMeta(p, meta)),
   }
 }
 

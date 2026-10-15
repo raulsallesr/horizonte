@@ -12,6 +12,7 @@ interface Props {
   p: Premissas
   serieBase: Serie
   diagnostico: Diagnostico
+  calculandoAjustes: boolean
   mc: ResultadoMonteCarlo | null
   referencia: PlanoReferencia | null
   set: (f: (p: Premissas) => Premissas) => void
@@ -59,6 +60,7 @@ export function DiagnosticoPlano({
   p,
   serieBase,
   diagnostico,
+  calculandoAjustes,
   mc,
   referencia,
   set,
@@ -127,6 +129,12 @@ export function DiagnosticoPlano({
           </li>
         )}
       </ul>
+
+      {calculandoAjustes && (
+        <p className="diagnostico-calculando" role="status" aria-live="polite">
+          <span className="spinner" aria-hidden="true" /> Calculando ajustes aplicáveis…
+        </p>
+      )}
 
       {temAcoes && (
         <div className="recomendacoes" aria-labelledby="titulo-recomendacoes">

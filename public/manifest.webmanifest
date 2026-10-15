@@ -1,0 +1,21 @@
+{
+  "name": "Horizonte — Simulador de liberdade financeira",
+  "short_name": "Horizonte",
+  "description": "Simule liberdade financeira, metas e probabilidades sem enviar dados para um servidor.",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a1120",
+  "theme_color": "#0a1120",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    {
+      "src": "./icon-horizonte.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

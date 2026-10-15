@@ -10,6 +10,7 @@
   --muted: #93a4bf;
   --hover: rgba(147, 164, 191, 0.12);
   --c-base: #2dd4bf;
+  --on-base: #04201c;
   --c-pess: #fb7185;
   --c-otim: #a78bfa;
   --c-sol: #fbbf24;
@@ -36,13 +37,14 @@
     --texto: #0f172a;
     --muted: #55657f;
     --hover: rgba(15, 23, 42, 0.06);
-    --c-base: #0d9488;
+    --c-base: #0f766e;
+    --on-base: #ffffff;
     --c-pess: #e11d48;
     --c-otim: #7c3aed;
-    --c-sol: #d97706;
+    --c-sol: #92400e;
     --c-barco: #0284c7;
     --c-aporte: #059669;
-    --ok: #059669;
+    --ok: #047857;
     --atencao: #b45309;
     --alerta: #e11d48;
     --alerta-bg: rgba(225, 29, 72, 0.08);
@@ -60,13 +62,14 @@
   --texto: #0f172a;
   --muted: #55657f;
   --hover: rgba(15, 23, 42, 0.06);
-  --c-base: #0d9488;
+  --c-base: #0f766e;
+  --on-base: #ffffff;
   --c-pess: #e11d48;
   --c-otim: #7c3aed;
-  --c-sol: #d97706;
+  --c-sol: #92400e;
   --c-barco: #0284c7;
   --c-aporte: #059669;
-  --ok: #059669;
+  --ok: #047857;
   --atencao: #b45309;
   --alerta: #e11d48;
   --alerta-bg: rgba(225, 29, 72, 0.08);
@@ -130,7 +133,7 @@ label {
   z-index: 1000;
   transform: translateY(-160%);
   background: var(--c-base);
-  color: #04201c;
+  color: var(--on-base);
   border-radius: 8px;
   padding: 10px 14px;
   font-weight: 700;
@@ -195,7 +198,7 @@ label {
 .btn.primario {
   background: var(--c-base);
   border-color: var(--c-base);
-  color: #04201c;
+  color: var(--on-base);
   font-weight: 600;
 }
 .btn.primario:hover {
@@ -213,6 +216,7 @@ label {
 }
 
 .aviso-sistema,
+.aviso-offline,
 .estado-calculo,
 .erro-calculo {
   display: flex;
@@ -228,6 +232,16 @@ label {
 .erro-calculo {
   background: var(--alerta-bg);
   border-color: var(--alerta);
+}
+.aviso-offline {
+  justify-content: flex-start;
+  background: var(--surface);
+  border-color: var(--c-barco);
+  color: var(--muted);
+}
+.aviso-offline .icone-svg,
+.aviso-offline strong {
+  color: var(--c-barco);
 }
 .estado-calculo {
   justify-content: flex-start;
@@ -549,7 +563,7 @@ label {
 }
 .seg button.on {
   background: var(--c-base);
-  color: #04201c;
+  color: var(--on-base);
   font-weight: 600;
 }
 
@@ -620,6 +634,17 @@ label {
   color: var(--atencao);
   font-size: 0.78rem;
   font-weight: 700;
+}
+
+.diagnostico-calculando {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.detalhes-sob-demanda {
+  min-height: 120px;
 }
 .diag-saudavel .selo-diagnostico {
   color: var(--ok);

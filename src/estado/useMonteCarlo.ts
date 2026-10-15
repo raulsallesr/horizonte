@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { startTransition, useEffect, useMemo, useState } from 'react'
 import type { ResultadoMonteCarlo } from '../engine/montecarlo'
 import type { Premissas } from '../engine/types'
 import type { PedidoMC, RespostaMC } from '../worker/montecarlo.worker'
@@ -43,12 +43,12 @@ export function useMonteCarlo(premissas: Premissas, trajetorias = 5000) {
       worker.onmessage = (ev: MessageEvent<RespostaMC>) => {
         if (ev.data.id !== id) return
         if (ev.data.tipo === 'progresso') {
-          const fracao = ev.data.fracao
-          setEstado((atual) =>
-            atual.chave === chave ? { ...atual, progresso: fracao } : atual,
-          )
+          return
         } else if (ev.data.tipo === 'pronto') {
-          setEstado({ chave, fase: 'pronto', resultado: ev.data.resultado, progresso: 1, erro: null })
+          const resultado = ev.data.resultado
+          startTransition(() => {
+            setEstado({ chave, fase: 'pronto', resultado, progresso: 1, erro: null })
+          })
           worker?.terminate()
           worker = null
         } else {

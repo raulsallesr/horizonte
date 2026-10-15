@@ -90,7 +90,7 @@ export function monteCarlo(
     const kLiberdade = mesQueSustenta(seguindo, numero)
     primeiraLib[t] = kLiberdade
     if (kLiberdade >= 0 && kLiberdade <= kParar) libAteParar++
-    if (opts.aoProgresso && t % 250 === 0) opts.aoProgresso(t / n)
+    if (opts.aoProgresso && t % 500 === 0) opts.aoProgresso(t / n)
   }
 
   const idades: number[] = []

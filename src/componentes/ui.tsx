@@ -18,6 +18,7 @@ export type NomeIcone =
   | 'alerta'
   | 'comparar'
   | 'salvar'
+  | 'offline'
 
 const CAMINHOS_ICONES: Record<NomeIcone, string> = {
   usuario: 'M20 21a8 8 0 0 0-16 0 M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
@@ -36,6 +37,7 @@ const CAMINHOS_ICONES: Record<NomeIcone, string> = {
   alerta: 'M12 3 2 21h20L12 3z M12 9v5 M12 18h.01',
   comparar: 'M7 7h13 M16 3l4 4-4 4 M17 17H4 M8 13l-4 4 4 4',
   salvar: 'M5 3h12l3 3v15H4V3h1 M8 3v6h8V3 M8 21v-7h8v7',
+  offline: 'M5 5l14 14 M8.5 8.5A5.5 5.5 0 0 1 18 13h1a3 3 0 0 1 2.8 4 M6 17H5a3 3 0 0 1-.7-5.9 M9 17h6',
 }
 
 export function Icone({ nome, tamanho = 18 }: { nome: NomeIcone; tamanho?: number }) {

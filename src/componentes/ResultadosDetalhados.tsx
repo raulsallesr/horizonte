@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { ResultadoMonteCarlo } from '../engine/montecarlo'
 import type { IdCenario, Premissas, Serie } from '../engine/types'
 import { GraficoFluxo, GraficoLeque, GraficoPatrimonio, GraficoProbabilidade } from './Graficos'
@@ -14,7 +15,7 @@ interface Props {
   calculando: boolean
 }
 
-export default function ResultadosDetalhados({ p, series, v, libs, virada, mc, calculando }: Props) {
+function ResultadosDetalhados({ p, series, v, libs, virada, mc, calculando }: Props) {
   return (
     <>
       <GraficoPatrimonio p={p} series={series} v={v} idadeLiberdadeBase={libs.base} />
@@ -25,3 +26,5 @@ export default function ResultadosDetalhados({ p, series, v, libs, virada, mc, c
     </>
   )
 }
+
+export default memo(ResultadosDetalhados)

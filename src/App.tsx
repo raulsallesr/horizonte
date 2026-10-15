@@ -1,17 +1,17 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { VISAO_PADRAO, type Visao } from './componentes/dados'
 import { DiagnosticoPlano } from './componentes/DiagnosticoPlano'
 import { Kpis, Metas } from './componentes/Kpis'
 import { PainelPremissas } from './componentes/PainelPremissas'
 import { Icone, Segmentado } from './componentes/ui'
 import { idadeLiberdade, idadeVirada, impactoBarco } from './engine/metas'
-import { diagnosticarPlano } from './engine/diagnostico'
 import { premissasPadrao } from './engine/padrao'
 import { projetar } from './engine/projecao'
 import type { Premissas } from './engine/types'
 import { carregarInicial, limparPersistencia, normalizar, persistir } from './estado/compartilhar'
 import { lerPlanoReferencia, removerPlanoReferencia, salvarPlanoReferencia, type PlanoReferencia } from './estado/comparacao'
 import { useMonteCarlo } from './estado/useMonteCarlo'
+import { useDiagnostico } from './estado/useDiagnostico'
 
 const ResultadosDetalhados = lazy(() => import('./componentes/ResultadosDetalhados'))
 
@@ -58,6 +58,92 @@ function useModoPainel() {
   return [modo, setModo] as const
 }
 
+function useConectividade() {
+  const [online, setOnline] = useState(() => {
+    try {
+      return navigator.onLine && window.sessionStorage.getItem('horizonte:offline') !== '1'
+    } catch {
+      return navigator.onLine
+    }
+  })
+  const [offlinePronto, setOfflinePronto] = useState(false)
+
+  useEffect(() => {
+    let ativo = true
+    let versaoSinal = 0
+    const ficouOnline = () => {
+      setOnline(true)
+      try {
+        window.sessionStorage.removeItem('horizonte:offline')
+      } catch {
+        /* ignora */
+      }
+    }
+    const ficouOffline = () => {
+      versaoSinal += 1
+      setOnline(false)
+      try {
+        window.sessionStorage.setItem('horizonte:offline', '1')
+      } catch {
+        /* ignora */
+      }
+    }
+    const verificarRede = async () => {
+      const versaoVerificacao = versaoSinal
+      try {
+        const resposta = await fetch('./manifest.webmanifest?conectividade=1', { cache: 'no-store' })
+        if (!resposta.ok) throw new Error('Rede indisponível')
+        if (!ativo || versaoVerificacao !== versaoSinal) return
+        if (navigator.onLine) ficouOnline()
+        else ficouOffline()
+      } catch {
+        if (ativo) ficouOffline()
+      }
+    }
+    const possivelmenteOnline = () => void verificarRede()
+
+    window.addEventListener('online', possivelmenteOnline)
+    window.addEventListener('offline', ficouOffline)
+    void verificarRede()
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(() => ativo && setOfflinePronto(true)).catch(() => undefined)
+    }
+    return () => {
+      ativo = false
+      window.removeEventListener('online', possivelmenteOnline)
+      window.removeEventListener('offline', ficouOffline)
+    }
+  }, [])
+
+  return { online, offlinePronto }
+}
+
+function useDetalhesProximos() {
+  const ancora = useRef<HTMLDivElement>(null)
+  const [carregar, setCarregar] = useState(false)
+
+  useEffect(() => {
+    const alvo = ancora.current
+    if (!alvo || !('IntersectionObserver' in window)) {
+      setCarregar(true)
+      return
+    }
+    const observador = new IntersectionObserver(
+      ([entrada]) => {
+        if (!entrada.isIntersecting) return
+        setCarregar(true)
+        observador.disconnect()
+      },
+      { rootMargin: '600px 0px' },
+    )
+    observador.observe(alvo)
+    return () => observador.disconnect()
+  }, [])
+
+  return { ancora, carregar }
+}
+
 export default function App() {
   const [inicial] = useState(carregarInicial)
   const [p, setP] = useState<Premissas>(inicial.premissas)
@@ -67,6 +153,8 @@ export default function App() {
   const [modoPainel, setModoPainel] = useModoPainel()
   const [referencia, setReferencia] = useState<PlanoReferencia | null>(lerPlanoReferencia)
   const [copiado, setCopiado] = useState(false)
+  const { online, offlinePronto } = useConectividade()
+  const { ancora: ancoraDetalhes, carregar: carregarDetalhes } = useDetalhesProximos()
 
   const set = useCallback((f: (x: Premissas) => Premissas) => setP((x) => normalizar(f(x))), [])
 
@@ -99,7 +187,7 @@ export default function App() {
     [p],
   )
   const virada = useMemo(() => idadeVirada(p, series.base), [p, series])
-  const diagnostico = useMemo(() => diagnosticarPlano(p, series.base), [p, series.base])
+  const { diagnostico, calculando: calculandoDiagnostico } = useDiagnostico(p, series.base)
   const { resultado: mc, fase: faseMc, calculando, progresso, erro: erroMc, recalcular } = useMonteCarlo(p)
 
   const salvarReferencia = () => setReferencia(salvarPlanoReferencia(p))
@@ -170,6 +258,13 @@ export default function App() {
         </div>
       )}
 
+      {!online && (
+        <div className="aviso-offline" role="status" aria-live="polite">
+          <Icone nome="offline" />
+          <span><strong>Você está offline.</strong> A simulação continua funcionando neste dispositivo; links só poderão ser compartilhados quando a conexão voltar.</span>
+        </div>
+      )}
+
       <p className="aviso-exemplo">
         Os valores iniciais são <strong>fictícios</strong> (Marina, 30 anos). Mude qualquer número no painel — tudo recalcula na hora, no seu navegador.
       </p>
@@ -228,6 +323,7 @@ export default function App() {
             p={p}
             serieBase={series.base}
             diagnostico={diagnostico}
+            calculandoAjustes={calculandoDiagnostico}
             mc={mc}
             referencia={referencia}
             set={set}
@@ -236,17 +332,23 @@ export default function App() {
           />
           <Kpis p={p} series={series} libs={libs} impactos={impactos} mc={mc} mcIndisponivel={Boolean(erroMc)} v={v} />
           <Metas p={p} series={series} libs={libs} impactos={impactos} mc={mc} />
-          <Suspense fallback={<div className="carregando-detalhes" role="status">Carregando gráficos e tabela…</div>}>
-            <ResultadosDetalhados
-              p={p}
-              series={series}
-              v={v}
-              libs={libs}
-              virada={virada}
-              mc={mc}
-              calculando={calculando}
-            />
-          </Suspense>
+          <div ref={ancoraDetalhes} className="detalhes-sob-demanda">
+            {carregarDetalhes ? (
+              <Suspense fallback={<div className="carregando-detalhes" role="status">Carregando gráficos e tabela…</div>}>
+                <ResultadosDetalhados
+                  p={p}
+                  series={series}
+                  v={v}
+                  libs={libs}
+                  virada={virada}
+                  mc={mc}
+                  calculando={calculando}
+                />
+              </Suspense>
+            ) : (
+              <div className="carregando-detalhes" role="status">Os gráficos e a tabela serão carregados ao se aproximarem da tela.</div>
+            )}
+          </div>
         </div>
       </main>
 
@@ -255,6 +357,7 @@ export default function App() {
           <strong>Aviso:</strong> ferramenta educacional e de simulação. Não é recomendação de investimento, nem projeção garantida: retornos passados e hipóteses não se repetem. Para decisões reais, procure um profissional habilitado.
         </p>
         <p className="linha-icone"><Icone nome="privacidade" /> Privacidade: nada sai do seu navegador. Suas premissas ficam só aqui e no link que você copiar.</p>
+        {offlinePronto && <p className="linha-icone"><Icone nome="offline" /> Pronto para funcionar offline neste dispositivo.</p>}
         <p>Horizonte · código aberto (MIT)</p>
       </footer>
     </div>
