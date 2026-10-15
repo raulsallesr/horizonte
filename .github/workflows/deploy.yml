@@ -18,17 +18,42 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Baixar o código
+        uses: actions/checkout@v4
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm test
-      - run: npm run build
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - name: Instalar dependências
+        run: npm ci
+      - name: Instalar Chromium e dependências do sistema
+        run: npx playwright install --with-deps chromium
+      - name: Verificar código
+        run: npm run lint
+      - name: Executar testes unitários
+        run: npm test
+      - name: Gerar build de produção
+        run: npm run build
+      - name: Executar testes E2E
+        run: npm run test:e2e
+      - name: Verificar orçamentos Lighthouse
+        run: npm run test:lighthouse
+      - name: Guardar relatórios de qualidade
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorios-qualidade
+          path: |
+            artifacts/
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Preparar artefato do site
+        uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
@@ -39,5 +64,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - id: deployment
+      - name: Publicar site
+        id: deployment
         uses: actions/deploy-pages@v4
