@@ -1,5 +1,5 @@
-import { mesesTotais, simular } from './projecao'
-import { numeroLiberdade } from './metas'
+import { mesQueSustenta, numeroLiberdade } from './metas'
+import { comprasAtivas, mesesTotais, simular } from './projecao'
 import type { Premissas } from './types'
 
 /** PRNG determinístico (mulberry32). */
@@ -35,6 +35,8 @@ export interface ResultadoMonteCarlo {
   probDura: number
   /** Fração que atinge a liberdade até `idadeParar`. */
   probLiberdadeAteParar: number
+  /** Probabilidade de cada meta ser realizada na idade planejada. */
+  probMetas: Record<string, number>
 }
 
 function percentil(ordenado: Float64Array, q: number): number {
@@ -63,6 +65,8 @@ export function monteCarlo(
   const primeiraLib = new Int32Array(n).fill(-1)
   let duram = 0
   let libAteParar = 0
+  const metasAtivas = comprasAtivas(p)
+  const metasRealizadas = new Map(metasAtivas.map((m) => [m.id, 0]))
   const kParar = Math.round((p.idadeParar - p.idadeAtual) * 12)
   const retornos = new Float64Array(N)
   // "liberdade" = poder parar: detectada numa simulação em que você segue trabalhando
@@ -72,19 +76,20 @@ export function monteCarlo(
     for (let k = 0; k < N; k++) {
       retornos[k] = Math.max(-0.99, mu + sigma * normal(rand))
     }
-    const s = simular(p, cenario, { retornos, detalhe: false })
-    if (s.esgotouK < 0) duram++
+    const s = simular(p, cenario, { retornos, detalhe: false, registrarMetas: true })
+    if (s.esgotouNaFaseDeSaqueK < 0) duram++
+    for (const meta of s.metas) {
+      if (meta.status === 'realizada') {
+        metasRealizadas.set(meta.id, (metasRealizadas.get(meta.id) ?? 0) + 1)
+      }
+    }
     for (let a = 0; a < colunas; a++) {
       matriz[t * colunas + a] = s.pat[a * 12] / s.defl[a * 12]
     }
     const seguindo = simular(pSeguir, cenario, { retornos, detalhe: false })
-    for (let k = 0; k <= N; k++) {
-      if (seguindo.pat[k] / seguindo.defl[k] >= numero) {
-        primeiraLib[t] = k
-        if (k <= kParar) libAteParar++
-        break
-      }
-    }
+    const kLiberdade = mesQueSustenta(seguindo, numero)
+    primeiraLib[t] = kLiberdade
+    if (kLiberdade >= 0 && kLiberdade <= kParar) libAteParar++
     if (opts.aoProgresso && t % 250 === 0) opts.aoProgresso(t / n)
   }
 
@@ -107,6 +112,8 @@ export function monteCarlo(
     probLiberdade.push(ja / n)
   }
 
+  opts.aoProgresso?.(1)
+
   return {
     trajetorias: n,
     idades,
@@ -116,5 +123,8 @@ export function monteCarlo(
     probLiberdade,
     probDura: duram / n,
     probLiberdadeAteParar: libAteParar / n,
+    probMetas: Object.fromEntries(
+      metasAtivas.map((meta) => [meta.id, (metasRealizadas.get(meta.id) ?? 0) / n]),
+    ),
   }
 }

@@ -1,13 +1,15 @@
 import { novaCompra, premissasPadrao } from '../engine/padrao'
 import type { Compra, Premissas } from '../engine/types'
 
-const CHAVE_LS = 'horizonte:premissas:v1'
+const CHAVE_LS = 'horizonte:premissas:v2'
+const CHAVE_LS_ANTIGA = 'horizonte:premissas:v1'
 const MAX_EXTRAS = 8
+const VERSAO_LINK = 2
 
 // ---- codificação para o hash da URL (JSON -> UTF-8 -> base64url) ----
 
 export function codificar(p: Premissas): string {
-  const bytes = new TextEncoder().encode(JSON.stringify(p))
+  const bytes = new TextEncoder().encode(JSON.stringify({ versao: VERSAO_LINK, premissas: p }))
   let bin = ''
   bytes.forEach((b) => (bin += String.fromCharCode(b)))
   return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
@@ -42,44 +44,68 @@ function mesclar<T extends object>(baseT: T, entrada: unknown): T {
 
 const limitar = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v))
 
-function normalizarCompra(c: Compra): Compra {
+function normalizarCompra(c: Compra, idadeMinima: number, idadeMaxima: number, valorMinimo = 0): Compra {
   return {
     ...c,
-    valor: limitar(c.valor, 0, 1e8),
-    manutencaoPct: limitar(c.manutencaoPct, 0, 50),
-    caixinhaMensal: limitar(c.caixinhaMensal, 0, 1e6),
+    idade: Math.round(limitar(c.idade, idadeMinima, idadeMaxima)),
+    valor: limitar(c.valor, valorMinimo, 1e8),
+    manutencaoPct: limitar(c.manutencaoPct, 0, 20),
+    caixinhaMensal: limitar(c.caixinhaMensal, 0, 1e7),
     modo: c.modo === 'caixinha' ? 'caixinha' : 'vista',
   }
 }
 
 /** Garante faixas válidas e coerência entre idades. */
 export function normalizar(p: Premissas): Premissas {
-  const idadeAtual = Math.round(limitar(p.idadeAtual, 16, 80))
-  const idadeParar = Math.round(limitar(p.idadeParar, idadeAtual, 90))
-  const idadeFinal = Math.round(limitar(p.idadeFinal, Math.max(idadeParar + 1, idadeAtual + 5), 110))
+  const idadeAtual = Math.round(limitar(p.idadeAtual, 18, 70))
+  const idadeParar = Math.round(limitar(p.idadeParar, idadeAtual, 80))
+  const idadeFinal = Math.round(limitar(p.idadeFinal, Math.max(60, idadeParar + 1, idadeAtual + 5), 105))
+  const idadeMetaMinima = idadeAtual + 1
+  const idadeMetaMaxima = idadeFinal - 1
+  const ids = new Set<string>()
+  const extras = p.extras.slice(0, MAX_EXTRAS).map((compra, i) => {
+    const baseId = compra.id.slice(0, 24) || `extra-${i + 1}`
+    let id = baseId
+    let sufixo = 2
+    while (ids.has(id)) id = `${baseId.slice(0, 20)}-${sufixo++}`
+    ids.add(id)
+    return {
+      ...normalizarCompra(compra, idadeMetaMinima, idadeMetaMaxima),
+      id,
+      // A interface de metas extras não oferece estes atributos; dados externos
+      // também não podem ativá-los de forma invisível.
+      manutencaoPct: 0,
+      modo: 'vista' as const,
+      caixinhaMensal: 0,
+    }
+  })
   return {
     ...p,
     idadeAtual,
     idadeParar,
     idadeFinal,
     patrimonioInicial: limitar(p.patrimonioInicial, 0, 1e9),
-    salarioMensal: limitar(p.salarioMensal, 0, 1e7),
-    aumentoRealSalario: limitar(p.aumentoRealSalario, -10, 20),
-    aportePercentual: limitar(p.aportePercentual, 0, 100),
+    salarioMensal: limitar(p.salarioMensal, 1000, 1e7),
+    aumentoRealSalario: limitar(p.aumentoRealSalario, 0, 8),
+    aportePercentual: limitar(p.aportePercentual, 0, 70),
     aporteFixo: limitar(p.aporteFixo, 0, 1e7),
-    aumentoRealAporte: limitar(p.aumentoRealAporte, -10, 20),
-    inflacao: limitar(p.inflacao, 0, 30),
-    despesaMensal: limitar(p.despesaMensal, 0, 1e7),
+    aumentoRealAporte: limitar(p.aumentoRealAporte, 0, 8),
+    inflacao: limitar(p.inflacao, 0, 12),
+    despesaMensal: limitar(p.despesaMensal, 1000, 1e7),
     outraRendaPosParar: limitar(p.outraRendaPosParar, 0, 1e7),
-    taxaRetirada: limitar(p.taxaRetirada, 1, 10),
+    taxaRetirada: limitar(p.taxaRetirada, 2, 6),
     aporteModo: p.aporteModo === 'fixo' ? 'fixo' : 'percentual',
     cenarios: {
-      pessimista: { ...p.cenarios.pessimista, rentAnual: limitar(p.cenarios.pessimista.rentAnual, -5, 40), vol: limitar(p.cenarios.pessimista.vol, 0, 60) },
-      base: { ...p.cenarios.base, rentAnual: limitar(p.cenarios.base.rentAnual, -5, 40), vol: limitar(p.cenarios.base.vol, 0, 60) },
-      otimista: { ...p.cenarios.otimista, rentAnual: limitar(p.cenarios.otimista.rentAnual, -5, 40), vol: limitar(p.cenarios.otimista.vol, 0, 60) },
+      pessimista: { id: 'pessimista', nome: 'Pessimista', rentAnual: limitar(p.cenarios.pessimista.rentAnual, 0, 25), vol: limitar(p.cenarios.pessimista.vol, 0, 30) },
+      base: { id: 'base', nome: 'Base', rentAnual: limitar(p.cenarios.base.rentAnual, 0, 25), vol: limitar(p.cenarios.base.vol, 0, 30) },
+      otimista: { id: 'otimista', nome: 'Otimista', rentAnual: limitar(p.cenarios.otimista.rentAnual, 0, 25), vol: limitar(p.cenarios.otimista.vol, 0, 30) },
     },
-    barco: { ...normalizarCompra(p.barco), ativo: p.barco.ativo },
-    extras: p.extras.slice(0, MAX_EXTRAS).map(normalizarCompra),
+    barco: {
+      ...normalizarCompra(p.barco, idadeMetaMinima, idadeMetaMaxima, 10000),
+      id: 'barco',
+      ativo: p.barco.ativo,
+    },
+    extras,
   }
 }
 
@@ -96,22 +122,50 @@ export function sanear(entrada: unknown): Premissas {
   return normalizar(p)
 }
 
+function extrairPremissasDoLink(entrada: unknown): unknown {
+  if (!ehObj(entrada) || !('versao' in entrada)) return entrada // compatibilidade com links v1
+  if (entrada.versao !== VERSAO_LINK || !('premissas' in entrada)) {
+    throw new Error('versão de link incompatível')
+  }
+  return entrada.premissas
+}
+
+export function lerPremissasCompartilhadas(texto: string): Premissas {
+  return sanear(extrairPremissasDoLink(decodificar(texto)))
+}
+
 // ---- leitura / gravação ----
 
-export function carregarInicial(): Premissas {
-  try {
-    const h = window.location.hash.replace(/^#/, '')
-    if (h.startsWith('s=')) return sanear(decodificar(h.slice(2)))
-  } catch {
-    /* link inválido: cai no próximo */
+export interface CargaInicial {
+  premissas: Premissas
+  origem: 'link' | 'local' | 'padrao'
+  aviso: string | null
+}
+
+export function carregarInicial(): CargaInicial {
+  const h = window.location.hash.replace(/^#/, '')
+  if (h.startsWith('s=')) {
+    try {
+      return {
+        premissas: lerPremissasCompartilhadas(h.slice(2)),
+        origem: 'link',
+        aviso: null,
+      }
+    } catch {
+      return {
+        premissas: premissasPadrao(),
+        origem: 'padrao',
+        aviso: 'Este link de simulação é inválido ou incompatível. O exemplo padrão foi carregado com segurança.',
+      }
+    }
   }
   try {
-    const salvo = window.localStorage.getItem(CHAVE_LS)
-    if (salvo) return sanear(JSON.parse(salvo))
+    const salvo = window.localStorage.getItem(CHAVE_LS) ?? window.localStorage.getItem(CHAVE_LS_ANTIGA)
+    if (salvo) return { premissas: sanear(JSON.parse(salvo)), origem: 'local', aviso: null }
   } catch {
     /* sem storage */
   }
-  return premissasPadrao()
+  return { premissas: premissasPadrao(), origem: 'padrao', aviso: null }
 }
 
 export function persistir(p: Premissas): void {
@@ -130,6 +184,7 @@ export function persistir(p: Premissas): void {
 export function limparPersistencia(): void {
   try {
     window.localStorage.removeItem(CHAVE_LS)
+    window.localStorage.removeItem(CHAVE_LS_ANTIGA)
   } catch {
     /* ignora */
   }

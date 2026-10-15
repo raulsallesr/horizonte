@@ -1,4 +1,4 @@
-import type { Cenario, Compra, IdCenario, LinhaAnual, Premissas, Serie } from './types'
+import type { Cenario, Compra, IdCenario, LinhaAnual, Premissas, ResultadoMeta, Serie } from './types'
 
 const taxaMensal = (aaPct: number) => Math.pow(1 + aaPct / 100, 1 / 12) - 1
 
@@ -26,10 +26,11 @@ export function deflatorMes(p: Premissas, k: number): number {
 export function simular(
   p: Premissas,
   cenario: Cenario,
-  opts: { retornos?: Float64Array; detalhe?: boolean; compras?: Compra[] } = {},
+  opts: { retornos?: Float64Array; detalhe?: boolean; compras?: Compra[]; registrarMetas?: boolean } = {},
 ): Serie {
   const N = mesesTotais(p)
   const detalhe = opts.detalhe ?? true
+  const registrarMetas = opts.registrarMetas ?? detalhe
   const compras = opts.compras ?? comprasAtivas(p)
   const rmFixo = taxaMensal(cenario.rentAnual)
   const gSal = 1 + p.aumentoRealSalario / 100
@@ -46,11 +47,14 @@ export function simular(
 
   // mês (passo) em que cada compra acontece
   const passoCompra = compras.map((c) => Math.max(1, Math.round((c.idade - p.idadeAtual) * 12)))
-  const comprada = compras.map(() => false)
+  const encerrada = compras.map(() => false)
+  const realizada = compras.map(() => false)
+  const metas: ResultadoMeta[] = []
 
   let invest = p.patrimonioInicial
   const caixinha = compras.map(() => 0)
   let esgotouK = -1
+  let esgotouNaFaseDeSaqueK = -1
   let f = 1
   pat[0] = invest
   defl[0] = 1
@@ -78,11 +82,12 @@ export function simular(
 
     if (trabalhando) {
       const salNominal = p.salarioMensal * Math.pow(gSal, anoIdx) * f
-      const rendaMes = salNominal * (p.decimoTerceiro && k % 12 === 0 ? 2 : 1)
+      const multiplicadorDezembro = p.decimoTerceiro && k % 12 === 0 ? 2 : 1
+      const rendaMes = salNominal * multiplicadorDezembro
       ap =
         p.aporteModo === 'percentual'
           ? (p.aportePercentual / 100) * rendaMes
-          : p.aporteFixo * Math.pow(gApo, anoIdx) * f
+          : p.aporteFixo * Math.pow(gApo, anoIdx) * f * multiplicadorDezembro
     } else {
       ret = Math.max(0, (p.despesaMensal - p.outraRendaPosParar) * f)
     }
@@ -90,7 +95,7 @@ export function simular(
     // caixinha: separa parte do aporte para a compra, até o mês da compra
     for (let i = 0; i < compras.length; i++) {
       const c = compras[i]
-      if (c.modo === 'caixinha' && !comprada[i] && k < passoCompra[i] && ap > 0) {
+      if (c.modo === 'caixinha' && !encerrada[i] && k < passoCompra[i] && ap > 0) {
         const sep = Math.min(ap, c.caixinhaMensal * f)
         caixinha[i] += sep
         ap -= sep
@@ -104,25 +109,44 @@ export function simular(
     // compras no mês
     for (let i = 0; i < compras.length; i++) {
       const c = compras[i]
-      if (!comprada[i] && k === passoCompra[i]) {
-        comprada[i] = true
+      if (!encerrada[i] && k === passoCompra[i]) {
+        encerrada[i] = true
         const custo = c.valor * f
-        cmp += custo
-        if (c.modo === 'caixinha') {
-          const usado = Math.min(caixinha[i], custo)
-          caixinha[i] -= usado
-          invest -= custo - usado
-          invest += caixinha[i] // sobra volta ao patrimônio
-          caixinha[i] = 0
+        const recursos = invest + (c.modo === 'caixinha' ? caixinha[i] : 0)
+        const deficit = Math.max(0, custo - recursos)
+        if (deficit <= 0.01) {
+          realizada[i] = true
+          cmp += custo
+          if (c.modo === 'caixinha') {
+            invest += caixinha[i] - custo
+            caixinha[i] = 0
+          } else {
+            invest -= custo
+          }
         } else {
-          invest -= custo
+          // A meta falha fechada: não cria dívida nem finge que a compra aconteceu.
+          // O que estava reservado volta a compor o patrimônio investido.
+          invest += caixinha[i]
+          caixinha[i] = 0
+        }
+        if (registrarMetas) {
+          metas.push({
+            id: c.id,
+            nome: c.nome,
+            idade: c.idade,
+            status: realizada[i] ? 'realizada' : 'sem_recursos',
+            custoNominal: custo,
+            recursosNominais: recursos,
+            deficitNominal: deficit,
+            deflator: f,
+          })
         }
       }
     }
     // manutenção (após a compra)
     for (let i = 0; i < compras.length; i++) {
       const c = compras[i]
-      if (comprada[i] && k > passoCompra[i] && c.manutencaoPct > 0) {
+      if (realizada[i] && k > passoCompra[i] && c.manutencaoPct > 0) {
         const m = (c.valor * (c.manutencaoPct / 100) * f) / 12
         invest -= m
         cmp += m
@@ -132,6 +156,7 @@ export function simular(
     if (invest < 0) {
       invest = 0
       if (esgotouK < 0) esgotouK = k
+      if (!trabalhando && esgotouNaFaseDeSaqueK < 0) esgotouNaFaseDeSaqueK = k
     }
 
     let total = invest
@@ -146,7 +171,37 @@ export function simular(
     }
   }
 
-  return { meses: N, idadeAtual: p.idadeAtual, pat, defl, aporte, rendimento, retirada, compra, esgotouK }
+  if (registrarMetas) {
+    for (let i = 0; i < compras.length; i++) {
+      if (!encerrada[i]) {
+        const c = compras[i]
+        metas.push({
+          id: c.id,
+          nome: c.nome,
+          idade: c.idade,
+          status: 'fora_do_horizonte',
+          custoNominal: 0,
+          recursosNominais: 0,
+          deficitNominal: 0,
+          deflator: defl[N],
+        })
+      }
+    }
+  }
+
+  return {
+    meses: N,
+    idadeAtual: p.idadeAtual,
+    pat,
+    defl,
+    aporte,
+    rendimento,
+    retirada,
+    compra,
+    esgotouK,
+    esgotouNaFaseDeSaqueK,
+    metas,
+  }
 }
 
 export function projetar(p: Premissas, id: IdCenario): Serie {

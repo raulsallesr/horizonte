@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { fmtIdade, fmtMeses } from './formatos'
-import { idadeLiberdade, impactoBarco, numeroLiberdade } from './metas'
+import { idadeLiberdade, impactoBarco, mesQueAtinge, mesQueSustenta, numeroLiberdade } from './metas'
 import { monteCarlo } from './montecarlo'
 import { premissasPadrao } from './padrao'
 import { projetar, resumoAnual, simular } from './projecao'
-import type { Premissas } from './types'
+import type { Premissas, Serie } from './types'
 
 /** Premissas "limpas": sem inflação, sem compras, sem aumento real. */
 function limpa(extra: Partial<Premissas> = {}): Premissas {
@@ -83,6 +83,21 @@ describe('projeção determinística', () => {
     expect(s.aporte[12]).toBeCloseTo(200, 6)
   })
 
+  it('aporte fixo com 13º também faz um aporte adicional em dezembro', () => {
+    const p = limpa({
+      aporteModo: 'fixo',
+      aporteFixo: 1000,
+      decimoTerceiro: true,
+      patrimonioInicial: 0,
+      idadeAtual: 30,
+      idadeParar: 90,
+      idadeFinal: 32,
+    })
+    const s = projetar(p, 'base')
+    expect(s.aporte[1]).toBeCloseTo(1000, 6)
+    expect(s.aporte[12]).toBeCloseTo(2000, 6)
+  })
+
   it('fase de saque: retira a despesa corrigida e zera o patrimônio quando acaba', () => {
     const p = limpa({
       patrimonioInicial: 120000,
@@ -132,6 +147,44 @@ describe('projeção determinística', () => {
     expect(s.pat[k]).toBeCloseTo(caixaK - 10000 + 1000, 3)
   })
 
+  it('meta sem recursos não é comprada nem cria dívida silenciosa', () => {
+    const p = limpa({
+      patrimonioInicial: 0,
+      aporteModo: 'fixo',
+      aporteFixo: 0,
+      idadeAtual: 30,
+      idadeParar: 90,
+      idadeFinal: 35,
+      barco: {
+        ...premissasPadrao(2026).barco,
+        ativo: true,
+        valor: 100000,
+        idade: 31,
+        manutencaoPct: 20,
+        modo: 'vista',
+      },
+    })
+    const s = projetar(p, 'base')
+    expect(s.metas).toHaveLength(1)
+    expect(s.metas[0].status).toBe('sem_recursos')
+    expect(s.metas[0].deficitNominal).toBeGreaterThan(0)
+    expect(s.compra[12]).toBe(0)
+    expect(s.pat[s.meses]).toBe(0)
+  })
+
+  it('registra separadamente o esgotamento ocorrido na fase de saque', () => {
+    const p = limpa({
+      patrimonioInicial: 1000,
+      idadeAtual: 60,
+      idadeParar: 60,
+      idadeFinal: 65,
+      despesaMensal: 5000,
+    })
+    const s = projetar(p, 'base')
+    expect(s.esgotouK).toBe(1)
+    expect(s.esgotouNaFaseDeSaqueK).toBe(1)
+  })
+
   it('conservação: variação do patrimônio = rendimento + aporte - retirada - compras', () => {
     const p = premissasPadrao(2026)
     const s = projetar(p, 'base')
@@ -157,8 +210,20 @@ describe('metas', () => {
     expect(idade!).toBeGreaterThan(p.idadeAtual)
     expect(idade!).toBeLessThan(p.idadeFinal)
     const imp = impactoBarco(p, 'base')
+    expect(imp.statusBarco).toBe('realizada')
     expect(imp.atrasoMeses).not.toBeNull()
     expect(imp.atrasoMeses!).toBeGreaterThanOrEqual(0)
+  })
+
+  it('liberdade sustentada ignora um cruzamento que cai abaixo da meta depois', () => {
+    const pat = new Float64Array([120, 110, 80, 120, 130])
+    const s = {
+      meses: 4,
+      pat,
+      defl: new Float64Array([1, 1, 1, 1, 1]),
+    } as unknown as Serie
+    expect(mesQueAtinge(s, 100)).toBe(0)
+    expect(mesQueSustenta(s, 100)).toBe(3)
   })
 
   it('resumo anual cobre o horizonte inteiro', () => {
@@ -192,6 +257,8 @@ describe('Monte Carlo', () => {
     }
     expect(a.probLiberdade[0]).toBeGreaterThanOrEqual(0)
     expect(a.probLiberdade[a.probLiberdade.length - 1]).toBeLessThanOrEqual(1)
+    expect(a.probMetas.barco).toBeGreaterThanOrEqual(0)
+    expect(a.probMetas.barco).toBeLessThanOrEqual(1)
   })
 
   it('caminho rápido (detalhe=false) bate com o completo no patrimônio', () => {
@@ -200,6 +267,18 @@ describe('Monte Carlo', () => {
     const cheio = simular(p, cen)
     const leve = simular(p, cen, { detalhe: false })
     expect(Array.from(leve.pat)).toEqual(Array.from(cheio.pat))
+  })
+
+  it('separa a chance de realizar uma meta da chance de o dinheiro durar', () => {
+    const p = premissasPadrao(2026)
+    p.patrimonioInicial = 0
+    p.aportePercentual = 0
+    p.barco.valor = 100000000
+    p.barco.idade = 31
+    const mc = monteCarlo(p, { trajetorias: 20, semente: 9 })
+    expect(mc.probMetas.barco).toBe(0)
+    expect(mc.probDura).toBeGreaterThanOrEqual(0)
+    expect(mc.probDura).toBeLessThanOrEqual(1)
   })
 })
 

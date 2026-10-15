@@ -73,6 +73,25 @@ export interface Serie {
   compra: Float64Array
   /** Índice do mês em que o patrimônio zerou, ou -1. */
   esgotouK: number
+  /** Primeiro mês de esgotamento depois de parar de trabalhar, ou -1. */
+  esgotouNaFaseDeSaqueK: number
+  /** Resultado das metas no mês planejado. Vazio no caminho rápido, salvo se solicitado. */
+  metas: ResultadoMeta[]
+}
+
+export type StatusMeta = 'realizada' | 'sem_recursos' | 'fora_do_horizonte'
+
+export interface ResultadoMeta {
+  id: string
+  nome: string
+  idade: number
+  status: StatusMeta
+  /** Custo e recursos disponíveis em valores nominais do mês planejado. */
+  custoNominal: number
+  recursosNominais: number
+  deficitNominal: number
+  /** Deflator do mês planejado, para converter o déficit para R$ de hoje. */
+  deflator: number
 }
 
 export interface LinhaAnual {

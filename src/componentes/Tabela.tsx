@@ -33,7 +33,7 @@ export function Tabela({ p, series, v }: Props) {
   }
 
   return (
-    <details className="cartao tabela">
+    <details id="tabela-dados" className="cartao tabela">
       <summary>Tabela ano a ano</summary>
       <div className="tabela-barra">
         <Segmentado
@@ -53,6 +53,7 @@ export function Tabela({ p, series, v }: Props) {
       <p className="ajuda">{v.real ? 'Valores em R$ de hoje.' : 'Valores nominais (futuros).'}</p>
       <div className="tabela-rolagem">
         <table>
+          <caption className="sr-only">Projeção financeira ano a ano do cenário selecionado</caption>
           <thead>
             <tr>
               <th>Idade</th>

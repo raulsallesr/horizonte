@@ -72,8 +72,8 @@ Gera o site pronto na pasta `dist/`.
 - **Inflação e valor real**: veja tudo em *R$ de hoje* ou em valores nominais (futuros).
 - **Quanto rende por mês (ou por ano)**: gráfico de aportes × rendimento, com o "ponto de virada" em que o dinheiro passa a trabalhar mais do que você.
 - **Fases da vida**: aumento real de salário, 13º, aporte em % do salário ou valor fixo, idade de parar de trabalhar e fase de saque.
-- **Metas**: o barco (à vista ou com caixinha separada, com custo de manutenção) e outras metas pontuais. Mostra **quanto o barco adia a sua liberdade** em cada cenário.
-- **Probabilidades (Monte Carlo)**: 5.000 futuros possíveis com a oscilação dos mercados → chance de ter a liberdade na idade que você quer e chance de o dinheiro durar até o fim.
+- **Metas**: o barco (à vista ou com caixinha separada, com custo de manutenção) e outras metas pontuais. Mostra **quanto o barco adia a sua liberdade** e avisa quando não há saldo para realizar uma compra.
+- **Probabilidades (Monte Carlo)**: 5.000 futuros possíveis com a oscilação dos mercados → chance de ter a liberdade na idade desejada, de o dinheiro durar na fase de saque e de cada meta ser realizada.
 - **Link compartilhável**: as premissas ficam no endereço da página; copie e mande a simulação para alguém.
 - Tabela ano a ano com exportação em CSV, tema claro/escuro e layout para celular.
 
@@ -81,14 +81,23 @@ Gera o site pronto na pasta `dist/`.
 
 Passo **mensal**; taxas anuais viram mensais por `(1 + a)^(1/12) − 1`.
 
-1. Em cada mês, o saldo rende; depois entram o aporte (enquanto você trabalha) ou a retirada (depois de parar) e as compras.
+1. Em cada mês, o saldo rende; depois entram o aporte (enquanto você trabalha) ou a retirada (depois de parar) e as compras financiáveis.
 2. Salário e aporte crescem com a inflação mais o aumento real informado.
 3. A rentabilidade é **nominal e líquida** (já descontados IR e custos).
-4. **Número da liberdade** = (despesa mensal − outra renda) × 12 ÷ taxa de retirada. A idade da liberdade é quando o patrimônio, em R$ de hoje, cruza esse número — **seguindo trabalhando e aportando**, independentemente da idade em que você escolheu parar.
+4. **Número da liberdade** = (despesa mensal − outra renda) × 12 ÷ taxa de retirada. A idade da liberdade é o primeiro mês a partir do qual o patrimônio, em R$ de hoje, **permanece** acima desse número até o fim do horizonte — seguindo trabalhando e aportando para calcular essa data.
 5. **Rendimento em R$ de hoje** desconta a inflação: é o ganho acima da manutenção do poder de compra.
-6. **Monte Carlo**: retornos mensais normais com a média e a volatilidade do cenário Base, semente fixa (resultado reproduzível), rodando em um Web Worker.
+6. Uma meta só é comprada se o patrimônio disponível cobrir o custo integral na idade planejada. Se faltar saldo, nenhuma dívida é criada: a meta é marcada como não realizada e o déficit fica visível.
+7. **Monte Carlo**: retornos mensais normais com a média e a volatilidade do cenário Base, semente fixa (resultado reproduzível), rodando em um Web Worker cancelável. Metas sem saldo não são compradas e têm sua própria probabilidade de realização.
 
 O motor de cálculo fica em [`src/engine`](src/engine) (TypeScript puro, com testes em `engine.test.ts`).
+
+## Documentação técnica
+
+- [Arquitetura e fluxo de dados](docs/ARQUITETURA.md)
+- [Regras do modelo financeiro](docs/MODELO_FINANCEIRO.md)
+- [Estratégia de testes e validação](docs/VALIDACAO.md)
+- [Registro das melhorias de confiabilidade](docs/REGISTRO_MELHORIAS_2026-10-15.md)
+- [Como contribuir](CONTRIBUTING.md)
 
 ## Publicando no GitHub Pages
 

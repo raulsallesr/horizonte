@@ -20,7 +20,10 @@ export function PainelPremissas({ p, set }: Props) {
 
   return (
     <aside id="premissas" className="painel" aria-label="Premissas da simulação">
-      <Secao titulo="Você" icone="🙂">
+      <a className="btn primario voltar-resultados" href="#resultados">
+        ↑ Ver resultados atualizados
+      </a>
+      <Secao titulo="Você" icone="usuario">
         <CampoTexto rotulo="Nome" valor={p.nome} onChange={(v) => up('nome', v)} />
         <Campo rotulo="Idade hoje" valor={p.idadeAtual} min={18} max={70} sufixo="anos" onChange={(v) => up('idadeAtual', v)} />
         <Campo
@@ -35,7 +38,7 @@ export function PainelPremissas({ p, set }: Props) {
         <Campo rotulo="Planejar até" valor={p.idadeFinal} min={Math.max(60, p.idadeParar + 1)} max={105} sufixo="anos" onChange={(v) => up('idadeFinal', v)} />
       </Secao>
 
-      <Secao titulo="Renda e patrimônio de hoje" icone="💼">
+      <Secao titulo="Renda e patrimônio de hoje" icone="renda">
         <Campo rotulo="Patrimônio investido hoje" valor={p.patrimonioInicial} min={0} max={1000000} passo={5000} prefixo="R$" maxDigitavel={1e9} onChange={(v) => up('patrimonioInicial', v)} />
         <Campo rotulo="Salário líquido mensal" valor={p.salarioMensal} min={1000} max={60000} passo={250} prefixo="R$" maxDigitavel={1e7} onChange={(v) => up('salarioMensal', v)} />
         <Campo
@@ -51,7 +54,7 @@ export function PainelPremissas({ p, set }: Props) {
         <Interruptor rotulo="Recebo 13º (aporta também em dezembro)" valor={p.decimoTerceiro} onChange={(v) => up('decimoTerceiro', v)} />
       </Secao>
 
-      <Secao titulo="Aportes" icone="🌱">
+      <Secao titulo="Aportes" icone="aporte">
         <Segmentado
           rotulo="Tipo de aporte"
           valor={p.aporteModo}
@@ -71,7 +74,7 @@ export function PainelPremissas({ p, set }: Props) {
         )}
       </Secao>
 
-      <Secao titulo="Investimentos e inflação" icone="📈">
+      <Secao titulo="Investimentos e inflação" icone="investimentos">
         <Campo rotulo="Inflação (IPCA)" valor={p.inflacao} min={0} max={12} passo={0.1} sufixo="% a.a." onChange={(v) => up('inflacao', v)} />
         {CENARIOS.map((id) => {
           const c = p.cenarios[id]
@@ -104,7 +107,7 @@ export function PainelPremissas({ p, set }: Props) {
         <p className="ajuda">Use rentabilidade <strong>líquida</strong> (depois de IR e custos). A oscilação só vale para a simulação de probabilidades (cenário Base).</p>
       </Secao>
 
-      <Secao titulo="Liberdade financeira" icone="🏝️">
+      <Secao titulo="Liberdade financeira" icone="liberdade">
         <Campo rotulo="Despesa mensal desejada" valor={p.despesaMensal} min={1000} max={40000} passo={250} prefixo="R$" maxDigitavel={1e7} ajuda="Em R$ de hoje." onChange={(v) => up('despesaMensal', v)} />
         <Campo rotulo="Outra renda após parar" valor={p.outraRendaPosParar} min={0} max={20000} passo={250} prefixo="R$" maxDigitavel={1e7} ajuda="INSS, aluguel, pensão… (R$ de hoje)." onChange={(v) => up('outraRendaPosParar', v)} />
         <Campo rotulo="Taxa de retirada segura" valor={p.taxaRetirada} min={2} max={6} passo={0.1} sufixo="% a.a." onChange={(v) => up('taxaRetirada', v)} />
@@ -113,7 +116,7 @@ export function PainelPremissas({ p, set }: Props) {
         </p>
       </Secao>
 
-      <Secao titulo="⛵ Meta: o barco" icone="">
+      <Secao titulo="Meta: o barco" icone="barco">
         <Interruptor rotulo="Incluir o barco na simulação" valor={p.barco.ativo} onChange={(v) => upBarco({ ativo: v })} />
         {p.barco.ativo && (
           <>
@@ -137,7 +140,7 @@ export function PainelPremissas({ p, set }: Props) {
         )}
       </Secao>
 
-      <Secao titulo="Outras metas" icone="🎯" aberta={false}>
+      <Secao titulo="Outras metas" icone="meta" aberta={false}>
         {p.extras.map((e) => (
           <div key={e.id} className="extra">
             <CampoTexto rotulo="Meta" valor={e.nome} onChange={(v) => upExtra(e.id, { nome: v })} />

@@ -106,13 +106,14 @@ function EscalaToggle({ completo, onChange }: { completo: boolean; onChange: (v:
   )
 }
 
-export function Cartao({ titulo, sub, children }: { titulo: string; sub?: string; children: ReactNode }) {
+export function Cartao({ titulo, sub, resumo, children }: { titulo: string; sub?: string; resumo?: string; children: ReactNode }) {
   return (
     <section className="cartao grafico">
       <header>
         <h3>{titulo}</h3>
         {sub && <p>{sub}</p>}
       </header>
+      {resumo && <p className="sr-only">{resumo} Os mesmos valores podem ser consultados na tabela ano a ano.</p>}
       {children}
     </section>
   )
@@ -131,13 +132,16 @@ export function GraficoPatrimonio({ p, series, v, idadeLiberdadeBase }: PropsPat
   // foco no caminho até a liberdade: corta o topo, onde a curva explode em idades avançadas
   const iRef = Math.min(dados.length - 1, Math.round(p.idadeParar - p.idadeAtual) + 5)
   const topo = redondoCima(Math.max(dados[iRef].otimista, dados[iRef].meta * 1.5) * 1.25)
+  const pontoParar = dados[Math.min(dados.length - 1, Math.max(0, Math.round(p.idadeParar - p.idadeAtual)))]
+  const resumo = `Patrimônio no cenário Base aos ${p.idadeParar} anos: ${fmtBRLCompacto(pontoParar.base)}. ${idadeLiberdadeBase === null ? 'A liberdade não é sustentada dentro do horizonte.' : `A liberdade passa a ser sustentada aos ${Math.round(idadeLiberdadeBase)} anos.`}`
   return (
     <Cartao
       titulo="Seu patrimônio ao longo da vida"
       sub={`Três cenários de rentabilidade. A linha tracejada amarela é o número da liberdade${v.real ? '' : ' (corrigido pela inflação)'}.`}
+      resumo={resumo}
     >
       <EscalaToggle completo={completo} onChange={setCompleto} />
-      <div className="alt-grande">
+      <div className="alt-grande" role="img" aria-label={resumo}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={dados} margin={{ top: 18, right: 16, left: 4, bottom: 8 }}>
             <Eixos v={v} />
@@ -155,8 +159,8 @@ export function GraficoPatrimonio({ p, series, v, idadeLiberdadeBase }: PropsPat
             <Line name="Otimista" dataKey="otimista" stroke={COR.otimista} strokeWidth={2} dot={false} />
             <Line name="Base" dataKey="base" stroke={COR.base} strokeWidth={3.2} dot={false} />
             {marcador(xDe(p, v, p.idadeParar), 'para de trabalhar', 'var(--muted)')}
-            {p.barco.ativo && p.barco.idade < p.idadeFinal && marcador(xDe(p, v, p.barco.idade), '⛵ barco', 'var(--c-barco)')}
-            {idadeLiberdadeBase !== null && marcador(xDe(p, v, idadeLiberdadeBase), '🏝️ liberdade', 'var(--c-sol)', 'top')}
+            {p.barco.ativo && p.barco.idade < p.idadeFinal && marcador(xDe(p, v, p.barco.idade), 'barco', 'var(--c-barco)')}
+            {idadeLiberdadeBase !== null && marcador(xDe(p, v, idadeLiberdadeBase), 'liberdade', 'var(--c-sol)', 'top')}
           </ComposedChart>
         </ResponsiveContainer>
       </div>
@@ -198,13 +202,17 @@ export function GraficoFluxo({ p, serieBase, v, idadeVirada }: PropsFluxo) {
   const topo = redondoCima(Math.max(1, ...janela.map((d) => d.aporte + d.rendimento)) * 1.2)
   const fundo = -redondoCima(Math.max(0, ...dados.map((d) => -d.retirada))) * (dados.some((d) => d.retirada < 0) ? 1 : 0)
   const unidade = v.periodo === 'mensal' ? 'por mês (média do ano)' : 'por ano'
+  const resumo = idadeVirada === null
+    ? 'O rendimento real não supera os aportes dentro do horizonte projetado.'
+    : `O rendimento real passa a superar os aportes por volta dos ${Math.round(idadeVirada)} anos.`
   return (
     <Cartao
       titulo="Quanto o dinheiro rende — e quanto você aporta"
       sub={`Cenário Base, ${unidade}${v.real ? ', em R$ de hoje e já descontada a inflação' : ''}. Quando a barra amarela passa a verde, o dinheiro trabalha mais do que você.`}
+      resumo={resumo}
     >
       <EscalaToggle completo={completo} onChange={setCompleto} />
-      <div className="alt-medio">
+      <div className="alt-medio" role="img" aria-label={resumo}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={dados} margin={{ top: 18, right: 16, left: 4, bottom: 8 }} stackOffset="sign">
             <Eixos v={v} />
@@ -241,13 +249,18 @@ export function GraficoLeque({ p, mc, calculando, v }: PropsLeque) {
   const dados: PontoLeque[] = mc ? dadosLeque(p, mc, v) : []
   const iRef = Math.min(dados.length - 1, Math.round(p.idadeParar - p.idadeAtual) + 5)
   const topo = dados.length ? redondoCima(Math.max(dados[iRef].p90, dados[iRef].meta * 1.5) * 1.25) : 0
+  const pontoParar = dados[Math.min(dados.length - 1, Math.max(0, Math.round(p.idadeParar - p.idadeAtual)))]
+  const resumo = pontoParar
+    ? `Aos ${p.idadeParar} anos, 80% das trajetórias ficam entre ${fmtBRLCompacto(pontoParar.p10)} e ${fmtBRLCompacto(pontoParar.p90)}, com mediana de ${fmtBRLCompacto(pontoParar.p50)}.`
+    : 'A simulação de probabilidades ainda está sendo calculada.'
   return (
     <Cartao
       titulo="E se os mercados oscilarem? (simulação de probabilidades)"
       sub={`${mc ? mc.trajetorias.toLocaleString('pt-BR') : '5.000'} futuros possíveis no cenário Base. Faixa clara = 80% dos casos (do 10º ao 90º percentil); linha = mediana.`}
+      resumo={resumo}
     >
       <EscalaToggle completo={completo} onChange={setCompleto} />
-      <div className="alt-medio carregando-wrap">
+      <div className="alt-medio carregando-wrap" role="img" aria-label={resumo}>
         {calculando && <span className="calculando">calculando…</span>}
         {mc && (
           <ResponsiveContainer width="100%" height="100%">
@@ -271,12 +284,17 @@ export function GraficoLeque({ p, mc, calculando, v }: PropsLeque) {
 
 export function GraficoProbabilidade({ p, mc, calculando, v }: PropsLeque) {
   const dados: PontoLeque[] = mc ? dadosLeque(p, mc, v) : []
+  const pontoParar = dados[Math.min(dados.length - 1, Math.max(0, Math.round(p.idadeParar - p.idadeAtual)))]
+  const resumo = pontoParar
+    ? `A chance simulada de já sustentar a liberdade aos ${p.idadeParar} anos é de ${Math.round(pontoParar.prob)}%.`
+    : 'A chance de liberdade ainda está sendo calculada.'
   return (
     <Cartao
       titulo="Chance de já ter a liberdade, idade por idade"
       sub="Em quantos dos futuros simulados o patrimônio já passou do número da liberdade até cada idade."
+      resumo={resumo}
     >
-      <div className="alt-pequeno carregando-wrap">
+      <div className="alt-pequeno carregando-wrap" role="img" aria-label={resumo}>
         {calculando && <span className="calculando">calculando…</span>}
         {mc && (
           <ResponsiveContainer width="100%" height="100%">

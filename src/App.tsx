@@ -1,16 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { VISAO_PADRAO, type Visao } from './componentes/dados'
-import { GraficoFluxo, GraficoLeque, GraficoPatrimonio, GraficoProbabilidade } from './componentes/Graficos'
 import { Kpis, Metas } from './componentes/Kpis'
 import { PainelPremissas } from './componentes/PainelPremissas'
-import { Tabela } from './componentes/Tabela'
-import { Segmentado } from './componentes/ui'
+import { Icone, Segmentado } from './componentes/ui'
 import { idadeLiberdade, idadeVirada, impactoBarco } from './engine/metas'
 import { premissasPadrao } from './engine/padrao'
 import { projetar } from './engine/projecao'
 import type { Premissas } from './engine/types'
 import { carregarInicial, limparPersistencia, normalizar, persistir } from './estado/compartilhar'
 import { useMonteCarlo } from './estado/useMonteCarlo'
+
+const ResultadosDetalhados = lazy(() => import('./componentes/ResultadosDetalhados'))
 
 type Tema = 'auto' | 'claro' | 'escuro'
 
@@ -37,7 +37,9 @@ function useTema() {
 }
 
 export default function App() {
-  const [p, setP] = useState<Premissas>(carregarInicial)
+  const [inicial] = useState(carregarInicial)
+  const [p, setP] = useState<Premissas>(inicial.premissas)
+  const [avisoInicial, setAvisoInicial] = useState(inicial.aviso)
   const [v, setV] = useState<Visao>(VISAO_PADRAO)
   const [tema, setTema] = useTema()
   const [copiado, setCopiado] = useState(false)
@@ -73,7 +75,7 @@ export default function App() {
     [p],
   )
   const virada = useMemo(() => idadeVirada(p, series.base), [p, series])
-  const { resultado: mc, calculando } = useMonteCarlo(p)
+  const { resultado: mc, fase: faseMc, calculando, progresso, erro: erroMc, recalcular } = useMonteCarlo(p)
 
   const copiarLink = async () => {
     persistir(p)
@@ -89,13 +91,15 @@ export default function App() {
   const restaurar = () => {
     limparPersistencia()
     setP(premissasPadrao())
+    setAvisoInicial(null)
   }
 
   const proximoTema = () => setTema(tema === 'auto' ? 'escuro' : tema === 'escuro' ? 'claro' : 'auto')
-  const rotuloTema = tema === 'auto' ? '🌓 Auto' : tema === 'escuro' ? '🌙 Escuro' : '☀️ Claro'
+  const rotuloTema = tema === 'auto' ? 'Auto' : tema === 'escuro' ? 'Escuro' : 'Claro'
 
   return (
     <div className="app">
+      <a className="pular-conteudo" href="#resultados">Pular para os resultados</a>
       <header className="topo">
         <div className="marca">
           <svg viewBox="0 0 48 48" width="40" height="40" aria-hidden="true">
@@ -114,19 +118,26 @@ export default function App() {
             className="btn ir-premissas"
             onClick={() => document.getElementById('premissas')?.scrollIntoView({ behavior: 'smooth' })}
           >
-            ⚙️ Premissas
+            <Icone nome="ajustes" /> Premissas
           </button>
           <button type="button" className="btn" onClick={proximoTema} title="Alternar tema">
-            {rotuloTema}
+            <Icone nome="tema" /> {rotuloTema}
           </button>
           <button type="button" className="btn" onClick={restaurar}>
             Restaurar exemplo
           </button>
           <button type="button" className="btn primario" onClick={copiarLink}>
-            {copiado ? '✓ Link copiado' : '🔗 Copiar link da simulação'}
+            <Icone nome={copiado ? 'check' : 'link'} /> {copiado ? 'Link copiado' : 'Copiar link da simulação'}
           </button>
         </div>
       </header>
+
+      {avisoInicial && (
+        <div className="aviso-sistema" role="alert">
+          <span>{avisoInicial}</span>
+          <button type="button" className="btn" onClick={() => setAvisoInicial(null)}>Entendi</button>
+        </div>
+      )}
 
       <p className="aviso-exemplo">
         Os valores iniciais são <strong>fictícios</strong> (Marina, 30 anos). Mude qualquer número no painel — tudo recalcula na hora, no seu navegador.
@@ -135,7 +146,8 @@ export default function App() {
       <main className="layout">
         <PainelPremissas p={p} set={set} />
 
-        <div className="resultados">
+        <div id="resultados" className="resultados" aria-busy={calculando}>
+          <h2 className="sr-only">Resultados da simulação</h2>
           <div className="visao" aria-label="Como ver os valores">
             <Segmentado
               rotulo="Valores"
@@ -166,13 +178,34 @@ export default function App() {
             />
           </div>
 
-          <Kpis p={p} series={series} libs={libs} impactos={impactos} mc={mc} v={v} />
-          <Metas p={p} libs={libs} impactos={impactos} />
-          <GraficoPatrimonio p={p} series={series} v={v} idadeLiberdadeBase={libs.base} />
-          <GraficoFluxo p={p} serieBase={series.base} v={v} idadeVirada={virada} />
-          <GraficoLeque p={p} mc={mc} calculando={calculando} v={v} />
-          <GraficoProbabilidade p={p} mc={mc} calculando={calculando} v={v} />
-          <Tabela p={p} series={series} v={v} />
+          {calculando && (
+            <div className="estado-calculo" role="status" aria-live="polite">
+              <span className="spinner" aria-hidden="true" />
+              {faseMc === 'aguardando'
+                ? 'Preparando a simulação de probabilidades…'
+                : `Calculando 5.000 futuros possíveis${progresso > 0 ? ` · ${Math.round(progresso * 100)}%` : '…'}`}
+            </div>
+          )}
+          {erroMc && (
+            <div className="erro-calculo" role="alert">
+              <span>{erroMc} Os resultados determinísticos continuam válidos.</span>
+              <button type="button" className="btn" onClick={recalcular}>Tentar novamente</button>
+            </div>
+          )}
+
+          <Kpis p={p} series={series} libs={libs} impactos={impactos} mc={mc} mcIndisponivel={Boolean(erroMc)} v={v} />
+          <Metas p={p} series={series} libs={libs} impactos={impactos} mc={mc} />
+          <Suspense fallback={<div className="carregando-detalhes" role="status">Carregando gráficos e tabela…</div>}>
+            <ResultadosDetalhados
+              p={p}
+              series={series}
+              v={v}
+              libs={libs}
+              virada={virada}
+              mc={mc}
+              calculando={calculando}
+            />
+          </Suspense>
         </div>
       </main>
 
@@ -180,7 +213,7 @@ export default function App() {
         <p>
           <strong>Aviso:</strong> ferramenta educacional e de simulação. Não é recomendação de investimento, nem projeção garantida: retornos passados e hipóteses não se repetem. Para decisões reais, procure um profissional habilitado.
         </p>
-        <p>🔒 Privacidade: nada sai do seu navegador. Suas premissas ficam só aqui e no link que você copiar.</p>
+        <p className="linha-icone"><Icone nome="privacidade" /> Privacidade: nada sai do seu navegador. Suas premissas ficam só aqui e no link que você copiar.</p>
         <p>Horizonte · código aberto (MIT)</p>
       </footer>
     </div>
