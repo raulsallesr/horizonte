@@ -4,6 +4,8 @@ Todas as mudanças relevantes do projeto serão registradas neste arquivo.
 
 ## Não publicado
 
+## [1.1.0] — 2026-10-15
+
 ### Adicionado
 
 - Probabilidade Monte Carlo de realização de cada meta.
@@ -12,6 +14,11 @@ Todas as mudanças relevantes do projeto serão registradas neste arquivo.
 - Resumos acessíveis dos gráficos e tabela com legenda semântica.
 - Entrada numérica brasileira com validação no próprio campo.
 - Documentação de arquitetura, modelo e validação.
+- Modos simples e avançado para as premissas.
+- Diagnóstico determinístico do plano Base.
+- Recomendações calculadas de aporte, prazo, despesa e alternativas para metas.
+- Comparação com uma versão de referência salva somente no navegador.
+- Templates de issues, roadmap e atualização automática de dependências no GitHub.
 
 ### Alterado
 

@@ -68,6 +68,23 @@ Uma trajetória pode ter o dinheiro durando e, ao mesmo tempo, não conseguir re
 - Executa 5.000 trajetórias com semente fixa para permitir reprodução e comparação.
 - Calcula percentis 10, 50 e 90, liberdade sustentada, duração na fase de saque e realização das metas.
 
+## Diagnóstico e ajustes calculados
+
+O diagnóstico usa exclusivamente o cenário Base determinístico e avalia três condições independentes:
+
+1. o patrimônio real na idade de parar cobre o número da liberdade;
+2. o patrimônio não zera durante a fase de saque;
+3. todas as metas são realizadas sem criar dívida.
+
+Os ajustes exibidos são buscas numéricas sobre o mesmo motor:
+
+- **aporte mínimo**: menor aporte fixo mensal, em R$ de hoje, sem aumento real, que atende as três condições;
+- **idade viável**: primeira idade inteira, a partir da escolhida, em que o plano atende as três condições;
+- **despesa sustentável**: maior despesa mensal estimada que preserva o plano e as metas;
+- **meta inviável**: primeira idade posterior em que a compra cabe ou maior valor que cabe na data original.
+
+Cada alternativa é recalculada isoladamente. Ela não é aplicada sem ação explícita e não representa recomendação financeira profissional. A opção de financiamento permanece fora do modelo porque exigiria um contrato completo de dívida, com juros, prazo e impacto no fluxo mensal.
+
 ### Limitações
 
 O modelo não inclui correlação temporal, mudanças de regime, caudas extremas específicas, tributação individual por ativo, custos de transação detalhados, financiamento, dívidas ou mudanças discricionárias de consumo. Ele é educacional e não substitui planejamento financeiro profissional.

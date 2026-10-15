@@ -14,6 +14,7 @@ Premissas do usuário
         │
         ├── projeção determinística mensal
         │        ├── KPIs
+        │        ├── diagnóstico e alternativas calculadas
         │        ├── metas
         │        ├── gráficos
         │        └── tabela/CSV
@@ -31,6 +32,8 @@ Premissas do usuário
 - `src/worker`: ponto de entrada isolado do Monte Carlo.
 - `src/componentes`: formulários, KPIs, metas, gráficos e tabela.
 - `src/App.tsx`: composição da aplicação e coordenação dos estados.
+
+`src/engine/diagnostico.ts` deriva o diagnóstico e as alternativas do mesmo motor mensal usado pelos gráficos. A interface apenas apresenta essas respostas e aplica uma alteração quando a pessoa confirma o botão correspondente.
 
 ## Decisões de confiabilidade
 
@@ -53,6 +56,7 @@ Os gráficos e a tabela são carregados por `React.lazy`. Isso mantém o núcleo
 - Nenhuma premissa é enviada para servidor.
 - O hash da URL não é enviado pelo navegador em requisições HTTP.
 - Quem receber um link compartilhado verá as premissas codificadas nele.
+- A versão de referência usada na comparação fica somente no `localStorage` e não entra no link compartilhado.
 - Extensões do navegador, histórico local e capturas de tela continuam sendo responsabilidades do ambiente do usuário.
 
 ## Publicação

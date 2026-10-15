@@ -55,7 +55,13 @@ O terminal mostra algo como `Local: http://localhost:5173/`. **Abra esse endere�
 npm test
 ```
 
-Roda os testes do motor de cálculo.
+Roda os testes do motor de cálculo, diagnóstico, entradas e compartilhamento.
+
+```bash
+npm run lint
+```
+
+Verifica problemas estáticos no código.
 
 ```bash
 npm run build
@@ -75,6 +81,10 @@ Gera o site pronto na pasta `dist/`.
 - **Metas**: o barco (à vista ou com caixinha separada, com custo de manutenção) e outras metas pontuais. Mostra **quanto o barco adia a sua liberdade** e avisa quando não há saldo para realizar uma compra.
 - **Probabilidades (Monte Carlo)**: 5.000 futuros possíveis com a oscilação dos mercados → chance de ter a liberdade na idade desejada, de o dinheiro durar na fase de saque e de cada meta ser realizada.
 - **Link compartilhável**: as premissas ficam no endereço da página; copie e mande a simulação para alguém.
+- **Modo simples ou avançado**: comece pelas decisões essenciais e abra as hipóteses técnicas quando precisar.
+- **Diagnóstico do plano**: identifica liberdade fora do prazo, esgotamento na fase de saque e metas sem recursos.
+- **Ajustes calculados**: estima aporte mínimo, primeira idade viável, despesa sustentável e alternativas para metas — sempre com confirmação antes de mudar o plano.
+- **Comparação local**: salve uma versão de referência no navegador e compare os principais indicadores antes e depois.
 - Tabela ano a ano com exportação em CSV, tema claro/escuro e layout para celular.
 
 ## Como os números são calculados
@@ -97,6 +107,7 @@ O motor de cálculo fica em [`src/engine`](src/engine) (TypeScript puro, com tes
 - [Regras do modelo financeiro](docs/MODELO_FINANCEIRO.md)
 - [Estratégia de testes e validação](docs/VALIDACAO.md)
 - [Registro das melhorias de confiabilidade](docs/REGISTRO_MELHORIAS_2026-10-15.md)
+- [Roadmap e situação das próximas etapas](docs/ROADMAP.md)
 - [Como contribuir](CONTRIBUTING.md)
 
 ## Publicando no GitHub Pages

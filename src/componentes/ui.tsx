@@ -14,6 +14,10 @@ export type NomeIcone =
   | 'link'
   | 'check'
   | 'privacidade'
+  | 'diagnostico'
+  | 'alerta'
+  | 'comparar'
+  | 'salvar'
 
 const CAMINHOS_ICONES: Record<NomeIcone, string> = {
   usuario: 'M20 21a8 8 0 0 0-16 0 M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
@@ -28,6 +32,10 @@ const CAMINHOS_ICONES: Record<NomeIcone, string> = {
   link: 'M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1 M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1',
   check: 'M4 12l5 5L20 6',
   privacidade: 'M5 11h14v10H5z M8 11V7a4 4 0 0 1 8 0v4',
+  diagnostico: 'M4 19V9 M10 19v-5 M16 19V5 M22 19v-8 M2 19h22',
+  alerta: 'M12 3 2 21h20L12 3z M12 9v5 M12 18h.01',
+  comparar: 'M7 7h13 M16 3l4 4-4 4 M17 17H4 M8 13l-4 4 4 4',
+  salvar: 'M5 3h12l3 3v15H4V3h1 M8 3v6h8V3 M8 21v-7h8v7',
 }
 
 export function Icone({ nome, tamanho = 18 }: { nome: NomeIcone; tamanho?: number }) {

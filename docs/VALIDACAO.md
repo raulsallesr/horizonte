@@ -29,6 +29,9 @@ Os testes automatizados cobrem:
 - ids únicos e bloqueio de atributos invisíveis;
 - entrada numérica no padrão brasileiro;
 - formatação de idades e períodos.
+- diagnóstico de plano saudável e insuficiente;
+- cálculo de aporte mínimo e primeira idade viável;
+- alternativas de prazo e valor para meta sem recursos.
 
 ## Checklist visual e acessível
 
@@ -54,3 +57,15 @@ Antes de publicar uma mudança de interface:
 4. Aporte fixo com 13º: dezembro deve ter o dobro do aporte.
 5. Patrimônio cruza a liberdade antes do barco e cai depois: a liberdade só pode começar após a recuperação definitiva.
 6. Meta incerta no Monte Carlo: probabilidade de compra e probabilidade de duração devem aparecer separadamente.
+
+## Evidência do ciclo 1.1.0
+
+Em 15/10/2026:
+
+- `npm run lint`: aprovado;
+- `npm test`: 33 testes aprovados em 4 arquivos;
+- `npm run build`: aprovado com TypeScript 6 e Vite 8;
+- auditoria em Chrome real: 375×812, 812×375 e 1440×1000;
+- sem rolagem horizontal da página, ids duplicados, controles visíveis sem nome ou alvos de toque menores que 44 px;
+- cenário inviável validado com quatro ajustes calculados e nenhuma exceção no console;
+- comparação local validada com os cinco indicadores renderizados.

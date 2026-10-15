@@ -286,6 +286,43 @@ label {
   display: none;
 }
 
+.modo-painel {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px 0 12px;
+  border-bottom: 1px solid var(--borda);
+}
+.modo-painel-rotulo {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.modo-painel .seg {
+  width: 100%;
+}
+.modo-painel .seg button {
+  flex: 1;
+}
+.modo-painel p,
+.resumo-premissas-avancadas p {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.resumo-premissas-avancadas {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 8px 0;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--borda);
+}
+.resumo-premissas-avancadas strong {
+  color: var(--texto);
+}
+
 .secao {
   border-bottom: 1px solid var(--borda);
   padding: 4px 0;
@@ -529,6 +566,194 @@ label {
   border-radius: var(--raio);
   padding: 16px;
   box-shadow: var(--sombra);
+}
+
+/* ---------- diagnóstico e recomendações ---------- */
+.diagnostico {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border-top: 4px solid var(--atencao);
+}
+.diagnostico.diag-saudavel {
+  border-top-color: var(--ok);
+}
+.diagnostico.diag-critico {
+  border-top-color: var(--alerta);
+}
+.diagnostico-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+.diagnostico-topo > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.diagnostico-topo h2 {
+  font-size: clamp(1.25rem, 2.5vw, 1.65rem);
+  letter-spacing: -0.02em;
+}
+.diagnostico-topo p:not(.sobretitulo),
+.recomendacoes-cabecalho p,
+.comparacao-corpo > p {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+.sobretitulo {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--c-base);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.selo-diagnostico {
+  flex: none;
+  padding: 6px 10px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: var(--atencao);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.diag-saudavel .selo-diagnostico {
+  color: var(--ok);
+}
+.diag-critico .selo-diagnostico {
+  color: var(--alerta);
+}
+.checklist-plano {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.checklist-plano li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+.checklist-plano li.ok .icone-svg {
+  color: var(--ok);
+}
+.checklist-plano li.falha .icone-svg {
+  color: var(--alerta);
+}
+.recomendacoes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--borda);
+}
+.recomendacoes-cabecalho {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+.recomendacoes-cabecalho h3 {
+  font-size: 1rem;
+}
+.recomendacoes-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+.recomendacao {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  padding: 13px;
+  background: var(--surface2);
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+}
+.recomendacao-tipo {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.recomendacao > strong {
+  font-size: 1.1rem;
+}
+.recomendacao p {
+  color: var(--muted);
+  font-size: 0.8rem;
+  flex: 1;
+}
+.recomendacao .btn {
+  width: 100%;
+  font-size: 0.82rem;
+}
+.recomendacao-acoes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.comparacao {
+  border-top: 1px solid var(--borda);
+  padding-top: 6px;
+}
+.comparacao summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  cursor: pointer;
+  font-weight: 650;
+}
+.comparacao-corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 4px;
+}
+.comparacao-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.comparacao-tabela {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+}
+.comparacao-linha {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.3fr) repeat(2, minmax(110px, 0.8fr));
+  gap: 10px;
+  padding: 9px 11px;
+  border-top: 1px solid var(--borda);
+  font-size: 0.82rem;
+}
+.comparacao-linha:first-child {
+  border-top: 0;
+}
+.comparacao-linha.cabecalho {
+  color: var(--muted);
+  background: var(--surface2);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+.comparacao-linha strong {
+  text-align: right;
 }
 
 .kpis {
@@ -881,6 +1106,20 @@ tr.marca td {
   }
   .alerta-metas {
     grid-template-columns: 1fr;
+  }
+  .diagnostico-topo,
+  .recomendacoes-cabecalho {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .checklist-plano {
+    grid-template-columns: 1fr;
+  }
+  .comparacao-tabela {
+    overflow-x: auto;
+  }
+  .comparacao-linha {
+    min-width: 480px;
   }
   .campo-topo {
     align-items: flex-start;

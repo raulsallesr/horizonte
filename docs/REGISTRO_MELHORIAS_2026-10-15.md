@@ -22,6 +22,17 @@ Uma revisão integral do Horizonte encontrou boa arquitetura e apresentação, m
 | Performance | Lazy loading de gráficos e tabela | `ResultadosDetalhados.tsx` |
 | CI | Lint antes de teste e build | `.github/workflows/deploy.yml` |
 
+## Segundo ciclo — orientação e decisão
+
+| Tema | Decisão | Evidência |
+|---|---|---|
+| Complexidade | Modo simples mostra decisões essenciais; avançado expõe todas as hipóteses | `PainelPremissas.tsx` |
+| Diagnóstico | Separar prazo de liberdade, duração do saque e viabilidade das metas | `diagnostico.ts` |
+| Recomendações | Buscar numericamente aporte, idade, despesa e alternativas de metas | `diagnostico.ts` |
+| Controle | Nenhuma recomendação altera o plano sem clique explícito | `DiagnosticoPlano.tsx` |
+| Comparação | Salvar uma referência local, fora do link compartilhado | `comparacao.ts` |
+| Governança | Manter roadmap, changelog, templates e atualização de dependências | `.github`, `docs/ROADMAP.md` |
+
 ## Compatibilidade
 
 - Links antigos sem envelope continuam aceitos.

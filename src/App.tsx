@@ -1,18 +1,22 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { VISAO_PADRAO, type Visao } from './componentes/dados'
+import { DiagnosticoPlano } from './componentes/DiagnosticoPlano'
 import { Kpis, Metas } from './componentes/Kpis'
 import { PainelPremissas } from './componentes/PainelPremissas'
 import { Icone, Segmentado } from './componentes/ui'
 import { idadeLiberdade, idadeVirada, impactoBarco } from './engine/metas'
+import { diagnosticarPlano } from './engine/diagnostico'
 import { premissasPadrao } from './engine/padrao'
 import { projetar } from './engine/projecao'
 import type { Premissas } from './engine/types'
 import { carregarInicial, limparPersistencia, normalizar, persistir } from './estado/compartilhar'
+import { lerPlanoReferencia, removerPlanoReferencia, salvarPlanoReferencia, type PlanoReferencia } from './estado/comparacao'
 import { useMonteCarlo } from './estado/useMonteCarlo'
 
 const ResultadosDetalhados = lazy(() => import('./componentes/ResultadosDetalhados'))
 
 type Tema = 'auto' | 'claro' | 'escuro'
+type ModoPainel = 'simples' | 'avancado'
 
 function useTema() {
   const [tema, setTema] = useState<Tema>(() => {
@@ -36,12 +40,32 @@ function useTema() {
   return [tema, setTema] as const
 }
 
+function useModoPainel() {
+  const [modo, setModo] = useState<ModoPainel>(() => {
+    try {
+      return window.localStorage.getItem('horizonte:modo-painel') === 'avancado' ? 'avancado' : 'simples'
+    } catch {
+      return 'simples'
+    }
+  })
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('horizonte:modo-painel', modo)
+    } catch {
+      /* ignora */
+    }
+  }, [modo])
+  return [modo, setModo] as const
+}
+
 export default function App() {
   const [inicial] = useState(carregarInicial)
   const [p, setP] = useState<Premissas>(inicial.premissas)
   const [avisoInicial, setAvisoInicial] = useState(inicial.aviso)
   const [v, setV] = useState<Visao>(VISAO_PADRAO)
   const [tema, setTema] = useTema()
+  const [modoPainel, setModoPainel] = useModoPainel()
+  const [referencia, setReferencia] = useState<PlanoReferencia | null>(lerPlanoReferencia)
   const [copiado, setCopiado] = useState(false)
 
   const set = useCallback((f: (x: Premissas) => Premissas) => setP((x) => normalizar(f(x))), [])
@@ -75,7 +99,14 @@ export default function App() {
     [p],
   )
   const virada = useMemo(() => idadeVirada(p, series.base), [p, series])
+  const diagnostico = useMemo(() => diagnosticarPlano(p, series.base), [p, series.base])
   const { resultado: mc, fase: faseMc, calculando, progresso, erro: erroMc, recalcular } = useMonteCarlo(p)
+
+  const salvarReferencia = () => setReferencia(salvarPlanoReferencia(p))
+  const removerReferencia = () => {
+    removerPlanoReferencia()
+    setReferencia(null)
+  }
 
   const copiarLink = async () => {
     persistir(p)
@@ -144,7 +175,7 @@ export default function App() {
       </p>
 
       <main className="layout">
-        <PainelPremissas p={p} set={set} />
+        <PainelPremissas p={p} set={set} modo={modoPainel} onModo={setModoPainel} />
 
         <div id="resultados" className="resultados" aria-busy={calculando}>
           <h2 className="sr-only">Resultados da simulação</h2>
@@ -193,6 +224,16 @@ export default function App() {
             </div>
           )}
 
+          <DiagnosticoPlano
+            p={p}
+            serieBase={series.base}
+            diagnostico={diagnostico}
+            mc={mc}
+            referencia={referencia}
+            set={set}
+            onSalvarReferencia={salvarReferencia}
+            onRemoverReferencia={removerReferencia}
+          />
           <Kpis p={p} series={series} libs={libs} impactos={impactos} mc={mc} mcIndisponivel={Boolean(erroMc)} v={v} />
           <Metas p={p} series={series} libs={libs} impactos={impactos} mc={mc} />
           <Suspense fallback={<div className="carregando-detalhes" role="status">Carregando gráficos e tabela…</div>}>

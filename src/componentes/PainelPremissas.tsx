@@ -2,16 +2,18 @@ import { numeroLiberdade } from '../engine/metas'
 import { fmtBRLCompacto } from '../engine/formatos'
 import { novaCompra } from '../engine/padrao'
 import type { Compra, IdCenario, Premissas } from '../engine/types'
-import { Campo, CampoTexto, Interruptor, Secao, Segmentado } from './ui'
+import { Campo, CampoTexto, Icone, Interruptor, Secao, Segmentado } from './ui'
 
 interface Props {
   p: Premissas
   set: (f: (p: Premissas) => Premissas) => void
+  modo: 'simples' | 'avancado'
+  onModo: (modo: 'simples' | 'avancado') => void
 }
 
 const CENARIOS: IdCenario[] = ['pessimista', 'base', 'otimista']
 
-export function PainelPremissas({ p, set }: Props) {
+export function PainelPremissas({ p, set, modo, onModo }: Props) {
   const up = <K extends keyof Premissas>(k: K, v: Premissas[K]) => set((x) => ({ ...x, [k]: v }))
   const upBarco = (patch: Partial<Premissas['barco']>) =>
     set((x) => ({ ...x, barco: { ...x.barco, ...patch } }))
@@ -23,6 +25,23 @@ export function PainelPremissas({ p, set }: Props) {
       <a className="btn primario voltar-resultados" href="#resultados">
         ↑ Ver resultados atualizados
       </a>
+      <div className="modo-painel">
+        <span className="modo-painel-rotulo">Nível de detalhe</span>
+        <Segmentado
+          rotulo="Nível de detalhe das premissas"
+          valor={modo}
+          onChange={onModo}
+          opcoes={[
+            { id: 'simples', nome: 'Simples' },
+            { id: 'avancado', nome: 'Avançado' },
+          ]}
+        />
+        <p>
+          {modo === 'simples'
+            ? 'Só as decisões principais. Configurações avançadas existentes continuam valendo.'
+            : 'Todas as hipóteses do modelo ficam disponíveis.'}
+        </p>
+      </div>
       <Secao titulo="Você" icone="usuario">
         <CampoTexto rotulo="Nome" valor={p.nome} onChange={(v) => up('nome', v)} />
         <Campo rotulo="Idade hoje" valor={p.idadeAtual} min={18} max={70} sufixo="anos" onChange={(v) => up('idadeAtual', v)} />
@@ -35,23 +54,27 @@ export function PainelPremissas({ p, set }: Props) {
           ajuda="Até aqui você aporta; depois disso passa a viver do patrimônio."
           onChange={(v) => up('idadeParar', v)}
         />
-        <Campo rotulo="Planejar até" valor={p.idadeFinal} min={Math.max(60, p.idadeParar + 1)} max={105} sufixo="anos" onChange={(v) => up('idadeFinal', v)} />
+        {modo === 'avancado' && <Campo rotulo="Planejar até" valor={p.idadeFinal} min={Math.max(60, p.idadeParar + 1)} max={105} sufixo="anos" onChange={(v) => up('idadeFinal', v)} />}
       </Secao>
 
       <Secao titulo="Renda e patrimônio de hoje" icone="renda">
         <Campo rotulo="Patrimônio investido hoje" valor={p.patrimonioInicial} min={0} max={1000000} passo={5000} prefixo="R$" maxDigitavel={1e9} onChange={(v) => up('patrimonioInicial', v)} />
         <Campo rotulo="Salário líquido mensal" valor={p.salarioMensal} min={1000} max={60000} passo={250} prefixo="R$" maxDigitavel={1e7} onChange={(v) => up('salarioMensal', v)} />
-        <Campo
-          rotulo="Aumento real do salário"
-          valor={p.aumentoRealSalario}
-          min={0}
-          max={8}
-          passo={0.1}
-          sufixo="% a.a."
-          ajuda="Acima da inflação. 0% = o salário só acompanha os preços."
-          onChange={(v) => up('aumentoRealSalario', v)}
-        />
-        <Interruptor rotulo="Recebo 13º (aporta também em dezembro)" valor={p.decimoTerceiro} onChange={(v) => up('decimoTerceiro', v)} />
+        {modo === 'avancado' && (
+          <>
+            <Campo
+              rotulo="Aumento real do salário"
+              valor={p.aumentoRealSalario}
+              min={0}
+              max={8}
+              passo={0.1}
+              sufixo="% a.a."
+              ajuda="Acima da inflação. 0% = o salário só acompanha os preços."
+              onChange={(v) => up('aumentoRealSalario', v)}
+            />
+            <Interruptor rotulo="Recebo 13º (aporta também em dezembro)" valor={p.decimoTerceiro} onChange={(v) => up('decimoTerceiro', v)} />
+          </>
+        )}
       </Secao>
 
       <Secao titulo="Aportes" icone="aporte">
@@ -69,12 +92,20 @@ export function PainelPremissas({ p, set }: Props) {
         ) : (
           <>
             <Campo rotulo="Aporte mensal (R$ de hoje)" valor={p.aporteFixo} min={0} max={30000} passo={100} prefixo="R$" maxDigitavel={1e7} onChange={(v) => up('aporteFixo', v)} />
-            <Campo rotulo="Crescimento real do aporte" valor={p.aumentoRealAporte} min={0} max={8} passo={0.1} sufixo="% a.a." onChange={(v) => up('aumentoRealAporte', v)} />
+            {modo === 'avancado' && <Campo rotulo="Crescimento real do aporte" valor={p.aumentoRealAporte} min={0} max={8} passo={0.1} sufixo="% a.a." onChange={(v) => up('aumentoRealAporte', v)} />}
           </>
         )}
       </Secao>
 
-      <Secao titulo="Investimentos e inflação" icone="investimentos">
+      {modo === 'simples' ? (
+        <div className="resumo-premissas-avancadas">
+          <Icone nome="investimentos" />
+          <p>
+            O cálculo usa inflação de <strong>{p.inflacao.toLocaleString('pt-BR')}%</strong> e retorno Base líquido de{' '}
+            <strong>{p.cenarios.base.rentAnual.toLocaleString('pt-BR')}% a.a.</strong> Abra o modo avançado para alterar.
+          </p>
+        </div>
+      ) : <Secao titulo="Investimentos e inflação" icone="investimentos">
         <Campo rotulo="Inflação (IPCA)" valor={p.inflacao} min={0} max={12} passo={0.1} sufixo="% a.a." onChange={(v) => up('inflacao', v)} />
         {CENARIOS.map((id) => {
           const c = p.cenarios[id]
@@ -105,12 +136,16 @@ export function PainelPremissas({ p, set }: Props) {
           )
         })}
         <p className="ajuda">Use rentabilidade <strong>líquida</strong> (depois de IR e custos). A oscilação só vale para a simulação de probabilidades (cenário Base).</p>
-      </Secao>
+      </Secao>}
 
       <Secao titulo="Liberdade financeira" icone="liberdade">
         <Campo rotulo="Despesa mensal desejada" valor={p.despesaMensal} min={1000} max={40000} passo={250} prefixo="R$" maxDigitavel={1e7} ajuda="Em R$ de hoje." onChange={(v) => up('despesaMensal', v)} />
-        <Campo rotulo="Outra renda após parar" valor={p.outraRendaPosParar} min={0} max={20000} passo={250} prefixo="R$" maxDigitavel={1e7} ajuda="INSS, aluguel, pensão… (R$ de hoje)." onChange={(v) => up('outraRendaPosParar', v)} />
-        <Campo rotulo="Taxa de retirada segura" valor={p.taxaRetirada} min={2} max={6} passo={0.1} sufixo="% a.a." onChange={(v) => up('taxaRetirada', v)} />
+        {modo === 'avancado' && (
+          <>
+            <Campo rotulo="Outra renda após parar" valor={p.outraRendaPosParar} min={0} max={20000} passo={250} prefixo="R$" maxDigitavel={1e7} ajuda="INSS, aluguel, pensão… (R$ de hoje)." onChange={(v) => up('outraRendaPosParar', v)} />
+            <Campo rotulo="Taxa de retirada segura" valor={p.taxaRetirada} min={2} max={6} passo={0.1} sufixo="% a.a." onChange={(v) => up('taxaRetirada', v)} />
+          </>
+        )}
         <p className="destaque-num">
           Número da liberdade: <strong>{fmtBRLCompacto(numeroLiberdade(p))}</strong> <span>(em R$ de hoje)</span>
         </p>
@@ -120,21 +155,25 @@ export function PainelPremissas({ p, set }: Props) {
         <Interruptor rotulo="Incluir o barco na simulação" valor={p.barco.ativo} onChange={(v) => upBarco({ ativo: v })} />
         {p.barco.ativo && (
           <>
-            <CampoTexto rotulo="Nome" valor={p.barco.nome} onChange={(v) => upBarco({ nome: v })} />
+            {modo === 'avancado' && <CampoTexto rotulo="Nome" valor={p.barco.nome} onChange={(v) => upBarco({ nome: v })} />}
             <Campo rotulo="Valor (R$ de hoje)" valor={p.barco.valor} min={10000} max={1500000} passo={5000} prefixo="R$" maxDigitavel={1e8} onChange={(v) => upBarco({ valor: v })} />
             <Campo rotulo="Comprar aos" valor={p.barco.idade} min={p.idadeAtual + 1} max={p.idadeFinal - 1} sufixo="anos" onChange={(v) => upBarco({ idade: v })} />
-            <Campo rotulo="Manutenção anual" valor={p.barco.manutencaoPct} min={0} max={20} passo={0.5} sufixo="% do valor" ajuda="Marina, estaleiro, seguro, combustível… barco custa para manter." onChange={(v) => upBarco({ manutencaoPct: v })} />
-            <Segmentado
-              rotulo="Como pagar"
-              valor={p.barco.modo}
-              onChange={(v) => upBarco({ modo: v })}
-              opcoes={[
-                { id: 'vista', nome: 'À vista do patrimônio' },
-                { id: 'caixinha', nome: 'Caixinha separada' },
-              ]}
-            />
-            {p.barco.modo === 'caixinha' && (
-              <Campo rotulo="Separar por mês (R$ de hoje)" valor={p.barco.caixinhaMensal} min={0} max={10000} passo={100} prefixo="R$" maxDigitavel={1e7} ajuda="Sai do aporte e rende junto até a compra; a sobra volta ao patrimônio." onChange={(v) => upBarco({ caixinhaMensal: v })} />
+            {modo === 'avancado' && (
+              <>
+                <Campo rotulo="Manutenção anual" valor={p.barco.manutencaoPct} min={0} max={20} passo={0.5} sufixo="% do valor" ajuda="Marina, estaleiro, seguro, combustível… barco custa para manter." onChange={(v) => upBarco({ manutencaoPct: v })} />
+                <Segmentado
+                  rotulo="Como pagar"
+                  valor={p.barco.modo}
+                  onChange={(v) => upBarco({ modo: v })}
+                  opcoes={[
+                    { id: 'vista', nome: 'À vista do patrimônio' },
+                    { id: 'caixinha', nome: 'Caixinha separada' },
+                  ]}
+                />
+                {p.barco.modo === 'caixinha' && (
+                  <Campo rotulo="Separar por mês (R$ de hoje)" valor={p.barco.caixinhaMensal} min={0} max={10000} passo={100} prefixo="R$" maxDigitavel={1e7} ajuda="Sai do aporte e rende junto até a compra; a sobra volta ao patrimônio." onChange={(v) => upBarco({ caixinhaMensal: v })} />
+                )}
+              </>
             )}
           </>
         )}

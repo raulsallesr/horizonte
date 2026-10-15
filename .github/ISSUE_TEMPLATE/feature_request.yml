@@ -1,0 +1,35 @@
+name: Sugerir uma melhoria
+description: Proponha uma evolução de produto ou do modelo financeiro.
+title: "[Melhoria]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: necessidade
+    attributes:
+      label: Qual necessidade esta melhoria resolve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposta
+    attributes:
+      label: Como você imagina a solução?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área principal
+      options:
+        - Modelo financeiro
+        - Interface e acessibilidade
+        - Desempenho
+        - Documentação
+        - Automação e GitHub
+    validations:
+      required: true
+  - type: textarea
+    id: riscos
+    attributes:
+      label: Riscos ou casos especiais
+      description: O que não pode ser simplificado ou tratado silenciosamente?
