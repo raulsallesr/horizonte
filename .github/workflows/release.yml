@@ -1,0 +1,30 @@
+name: Criar release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar histórico e tags
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Criar release com notas automáticas
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME já existe."
+            exit 0
+          fi
+          gh release create "$GITHUB_REF_NAME" \
+            --verify-tag \
+            --generate-notes \
+            --title "Horizonte $GITHUB_REF_NAME"

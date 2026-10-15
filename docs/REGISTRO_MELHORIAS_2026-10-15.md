@@ -33,6 +33,19 @@ Uma revisão integral do Horizonte encontrou boa arquitetura e apresentação, m
 | Comparação | Salvar uma referência local, fora do link compartilhado | `comparacao.ts` |
 | Governança | Manter roadmap, changelog, templates e atualização de dependências | `.github`, `docs/ROADMAP.md` |
 
+## Terceiro ciclo — qualidade de produção
+
+| Tema | Decisão | Evidência |
+|---|---|---|
+| Offline | PWA com precache versionado, fallback de navegação e aviso de conectividade real | `vite.config.ts`, `pwa.ts` |
+| Acessibilidade | Axe A/AA em desktop/mobile e contraste claro corrigido | `e2e/horizonte.spec.ts`, `index.css` |
+| Desempenho | Worker próprio para recomendações, componentes memorizados e detalhes por proximidade | `useDiagnostico.ts`, `ResultadosDetalhados.tsx` |
+| Orçamento | Gates de performance, acessibilidade, boas práticas, SEO e transferência | `scripts/verificar-lighthouse.mjs` |
+| Responsividade | Automação para retrato, paisagem, texto a 200% e movimento reduzido | `playwright.config.ts`, `e2e/horizonte.spec.ts` |
+| CI/CD | Qualidade completa antes do Pages e relatórios preservados por 14 dias | `.github/workflows/deploy.yml` |
+| Release | Tags `v*` geram releases idempotentes com notas automáticas | `.github/workflows/release.yml` |
+| Governança | Ownership, segurança e ruleset recomendado documentados | `.github/CODEOWNERS`, `SECURITY.md`, `docs/GITHUB.md` |
+
 ## Compatibilidade
 
 - Links antigos sem envelope continuam aceitos.
@@ -44,4 +57,5 @@ Uma revisão integral do Horizonte encontrou boa arquitetura e apresentação, m
 
 - O modelo permanece educacional e não representa dívidas ou financiamento.
 - A distribuição do Monte Carlo é deliberadamente simples e está documentada.
-- Testes de componentes no DOM podem ser adicionados no futuro com uma biblioteca específica; a lógica crítica permanece extraída e testada como funções puras.
+- A proteção da branch `main` depende da ativação manual do ruleset no painel administrativo do GitHub.
+- Testes unitários de componentes isolados podem ser adicionados no futuro; os fluxos críticos da interface já são cobertos em navegador real.

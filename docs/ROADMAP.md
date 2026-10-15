@@ -13,16 +13,22 @@ O roadmap prioriza confiabilidade antes de ampliar o realismo do modelo. Datas n
 - comparação local entre versões do plano;
 - documentação técnica e governança básica no GitHub.
 
-## Próxima etapa — qualidade de produção
+## Entregue — v1.2.0 (qualidade de produção)
 
 - testes E2E em desktop e mobile com Playwright;
 - auditoria automatizada de acessibilidade;
 - orçamento de desempenho e acompanhamento com Lighthouse;
 - PWA com mensagem clara de funcionamento offline;
-- proteção da branch `main` e revisão obrigatória no GitHub;
 - automação de release baseada no changelog.
 
 O Dependabot já monitora mensalmente dependências npm e GitHub Actions.
+
+## Próxima etapa — governança e evolução do produto
+
+- ativar no painel do GitHub o ruleset documentado para a branch `main`;
+- observar a estabilidade dos novos gates em execuções reais da CI;
+- priorizar a próxima evolução financeira com contrato, exemplo e teste antes da implementação;
+- revisar a experiência de instalação da PWA em aparelhos físicos.
 
 ## Evolução financeira
 

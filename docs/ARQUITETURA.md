@@ -29,7 +29,7 @@ Premissas do usuário
 
 - `src/engine`: regras financeiras puras, sem dependência de React ou DOM.
 - `src/estado`: persistência, compartilhamento e ciclo de vida do Web Worker.
-- `src/worker`: ponto de entrada isolado do Monte Carlo.
+- `src/worker`: pontos de entrada isolados do Monte Carlo e das recomendações iterativas.
 - `src/componentes`: formulários, KPIs, metas, gráficos e tabela.
 - `src/App.tsx`: composição da aplicação e coordenação dos estados.
 
@@ -45,11 +45,15 @@ Links novos usam um envelope versionado. Links antigos continuam compatíveis. U
 
 ### Cálculo pesado
 
-O Monte Carlo roda em um Web Worker. Ao alterar uma premissa, o Worker anterior é encerrado antes de iniciar outro. Resultados antigos são removidos imediatamente e nunca são exibidos como se pertencessem às novas premissas.
+O Monte Carlo e as buscas iterativas do diagnóstico rodam em Web Workers separados. Ao alterar uma premissa, o Worker anterior é encerrado antes de iniciar outro. Resultados antigos são removidos imediatamente e nunca são exibidos como se pertencessem às novas premissas. A leitura essencial do diagnóstico continua síncrona e barata.
 
 ### Carregamento
 
-Os gráficos e a tabela são carregados por `React.lazy`. Isso mantém o núcleo interativo e os KPIs no pacote inicial e move o Recharts para um chunk separado.
+Os gráficos e a tabela são carregados por `React.lazy` somente quando se aproximam da viewport. Isso mantém o núcleo interativo e os KPIs no pacote inicial, move o Recharts para um chunk separado e evita trabalho invisível no primeiro carregamento.
+
+### PWA e conectividade
+
+O build gera um `sw.js` com cache nomeado pelo conteúdo dos bundles. Navegações usam rede primeiro e recorrem ao HTML armazenado; assets versionados usam cache primeiro. Uma chamada sem cache ao mesmo domínio confirma a conectividade real, evitando confiar somente em `navigator.onLine`.
 
 ## Privacidade
 
@@ -65,6 +69,8 @@ O workflow de GitHub Pages executa, nesta ordem:
 
 1. instalação reproduzível com `npm ci`;
 2. lint;
-3. testes;
+3. testes unitários;
 4. typecheck e build pelo script `npm run build`;
-5. publicação do diretório `dist`.
+5. testes E2E desktop/mobile e auditoria axe;
+6. orçamentos Lighthouse;
+7. publicação do diretório `dist`.

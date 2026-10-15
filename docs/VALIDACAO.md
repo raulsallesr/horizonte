@@ -6,10 +6,12 @@
 npm run lint
 npm test
 npm run build
+npm run test:e2e
+npm run test:lighthouse
 npm audit
 ```
 
-O workflow de publicação bloqueia o deploy quando lint, testes ou build falham.
+O workflow de publicação bloqueia o deploy quando lint, testes unitários, E2E, Lighthouse ou build falham.
 
 ## Cobertura funcional
 
@@ -32,6 +34,10 @@ Os testes automatizados cobrem:
 - diagnóstico de plano saudável e insuficiente;
 - cálculo de aporte mínimo e primeira idade viável;
 - alternativas de prazo e valor para meta sem recursos.
+
+O Playwright complementa os testes puros com fluxos reais em desktop e mobile: carga responsiva, modos simples/avançado, plano inviável, comparação, detalhes sob demanda, zoom, paisagem, movimento reduzido, axe WCAG A/AA e recarregamento offline.
+
+O Lighthouse exige performance ≥ 80, acessibilidade ≥ 95, boas práticas ≥ 90, SEO ≥ 90, FCP ≤ 2,5 s, LCP ≤ 3,2 s, TBT ≤ 350 ms, CLS ≤ 0,1 e transferência da aplicação ≤ 1 MB. Uma injeção local conhecida do Kaspersky é identificada e relatada, mas o limite de boas práticas continua obrigatório em ambientes limpos.
 
 ## Checklist visual e acessível
 
@@ -69,3 +75,16 @@ Em 15/10/2026:
 - sem rolagem horizontal da página, ids duplicados, controles visíveis sem nome ou alvos de toque menores que 44 px;
 - cenário inviável validado com quatro ajustes calculados e nenhuma exceção no console;
 - comparação local validada com os cinco indicadores renderizados.
+
+## Evidência do ciclo 1.2.0
+
+Em 15/10/2026:
+
+- `npm run lint`: aprovado;
+- `npm test`: 33 testes aprovados em 4 arquivos;
+- `npm run build`: aprovado, incluindo os Workers de diagnóstico e Monte Carlo e o service worker;
+- `npm run test:e2e`: 16 cenários aprovados — 8 em desktop e 8 em mobile;
+- axe: nenhuma violação WCAG A/AA detectável nas duas configurações;
+- `npm run test:lighthouse`: aprovado com performance 91, acessibilidade 100, SEO 100, FCP 2,33 s, LCP 2,80 s, TBT 158 ms, CLS 0 e 90 KiB da aplicação;
+- boas práticas locais: 81 apenas por requisições HTTP injetadas pelo Kaspersky e registradas no relatório; o gate ≥ 90 continua ativo quando o ambiente está limpo;
+- `npm audit --audit-level=moderate`: 0 vulnerabilidades.

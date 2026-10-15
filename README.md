@@ -69,6 +69,14 @@ npm run build
 
 Gera o site pronto na pasta `dist/`.
 
+```bash
+npm run test:e2e:install
+npm run test:e2e
+npm run test:lighthouse
+```
+
+Instala o Chromium de teste uma vez, valida os fluxos em desktop/mobile e confere os orçamentos Lighthouse. Os relatórios ficam em `playwright-report/` e `artifacts/`.
+
 > **Deu erro?** `npm não é reconhecido` = o Node não foi instalado ou o terminal não foi reaberto depois da instalação. `porta 5173 em uso` = já há outro Horizonte rodando; feche-o ou aperte `Ctrl + C` no terminal dele.
 
 ## O que ele faz
@@ -85,6 +93,7 @@ Gera o site pronto na pasta `dist/`.
 - **Diagnóstico do plano**: identifica liberdade fora do prazo, esgotamento na fase de saque e metas sem recursos.
 - **Ajustes calculados**: estima aporte mínimo, primeira idade viável, despesa sustentável e alternativas para metas — sempre com confirmação antes de mudar o plano.
 - **Comparação local**: salve uma versão de referência no navegador e compare os principais indicadores antes e depois.
+- **Instalável e offline**: depois do primeiro acesso, a PWA abre e mantém as simulações disponíveis mesmo sem conexão.
 - Tabela ano a ano com exportação em CSV, tema claro/escuro e layout para celular.
 
 ## Como os números são calculados
@@ -98,6 +107,7 @@ Passo **mensal**; taxas anuais viram mensais por `(1 + a)^(1/12) − 1`.
 5. **Rendimento em R$ de hoje** desconta a inflação: é o ganho acima da manutenção do poder de compra.
 6. Uma meta só é comprada se o patrimônio disponível cobrir o custo integral na idade planejada. Se faltar saldo, nenhuma dívida é criada: a meta é marcada como não realizada e o déficit fica visível.
 7. **Monte Carlo**: retornos mensais normais com a média e a volatilidade do cenário Base, semente fixa (resultado reproduzível), rodando em um Web Worker cancelável. Metas sem saldo não são compradas e têm sua própria probabilidade de realização.
+8. As buscas iterativas das recomendações também rodam em um Worker; a leitura essencial do plano permanece imediata.
 
 O motor de cálculo fica em [`src/engine`](src/engine) (TypeScript puro, com testes em `engine.test.ts`).
 
@@ -108,6 +118,7 @@ O motor de cálculo fica em [`src/engine`](src/engine) (TypeScript puro, com tes
 - [Estratégia de testes e validação](docs/VALIDACAO.md)
 - [Registro das melhorias de confiabilidade](docs/REGISTRO_MELHORIAS_2026-10-15.md)
 - [Roadmap e situação das próximas etapas](docs/ROADMAP.md)
+- [Governança, CI e processo de release](docs/GITHUB.md)
 - [Como contribuir](CONTRIBUTING.md)
 
 ## Publicando no GitHub Pages
@@ -116,7 +127,7 @@ O repositório já traz o fluxo de publicação em [`.github/workflows/deploy.ym
 
 1. Crie um repositório público no GitHub e envie o código (`git push -u origin main`).
 2. No repositório, abra **Settings → Pages** e em **Source** escolha **GitHub Actions**.
-3. A cada `push` na `main`, o GitHub roda os testes, gera o site e publica em `https://<seu-usuario>.github.io/<nome-do-repo>/`.
+3. A cada `push` na `main`, o GitHub roda lint, testes unitários, E2E, Lighthouse e build antes de publicar em `https://<seu-usuario>.github.io/<nome-do-repo>/`.
 
 ## Aviso
 

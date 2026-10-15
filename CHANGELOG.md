@@ -4,6 +4,30 @@ Todas as mudanças relevantes do projeto serão registradas neste arquivo.
 
 ## Não publicado
 
+## [1.2.0] — 2026-10-15
+
+### Adicionado
+
+- PWA instalável com manifest, ícone próprio, service worker versionado e recarregamento offline.
+- Banner de conectividade baseado em sinal do navegador e verificação real de rede.
+- Testes Playwright em desktop e mobile, com axe para WCAG A/AA e cenários offline.
+- Gate Lighthouse com orçamentos de performance, acessibilidade, boas práticas, SEO e transferência.
+- Relatórios de qualidade como artefatos do GitHub Actions.
+- Release automática ao enviar tags `v*`, CODEOWNERS e política de segurança.
+
+### Alterado
+
+- Recomendações iterativas passam a ser calculadas em Web Worker, sem bloquear a interface.
+- Gráficos e tabela carregam quando se aproximam da viewport e não rerenderizam a cada etapa do Monte Carlo.
+- CI valida lint, 33 testes unitários, E2E, Lighthouse e build antes do deploy.
+- Paleta clara recebe contraste AA também nos controles selecionados e estados de diagnóstico.
+
+### Corrigido
+
+- Assets da PWA agora ignoram diferenças de `Vary` ao consultar o cache versionado.
+- Estado offline permanece correto após recarregar uma página servida pelo service worker.
+- `robots.txt` deixa de retornar o HTML da aplicação.
+
 ## [1.1.0] — 2026-10-15
 
 ### Adicionado
