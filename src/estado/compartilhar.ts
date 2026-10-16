@@ -1,11 +1,13 @@
-import { novaCompra, premissasPadrao } from '../engine/padrao'
-import type { Compra, Premissas } from '../engine/types'
+import { novaCompra, novoFluxoPosParar, premissasPadrao } from '../engine/padrao'
+import type { Compra, FluxoPosParar, Premissas } from '../engine/types'
 
-const CHAVE_LS = 'horizonte:premissas:v3'
+const CHAVE_LS = 'horizonte:premissas:v4'
+const CHAVE_LS_ANTIGA_V3 = 'horizonte:premissas:v3'
 const CHAVE_LS_ANTIGA_V2 = 'horizonte:premissas:v2'
 const CHAVE_LS_ANTIGA_V1 = 'horizonte:premissas:v1'
 const MAX_EXTRAS = 8
-const VERSAO_LINK = 3
+const MAX_FLUXOS_POS_PARAR = 8
+const VERSAO_LINK = 4
 
 // ---- codificação para o hash da URL (JSON -> UTF-8 -> base64url) ----
 
@@ -56,6 +58,22 @@ function normalizarCompra(c: Compra, idadeMinima: number, idadeMaxima: number, v
   }
 }
 
+function normalizarFluxoPosParar(
+  fluxo: FluxoPosParar,
+  idadeParar: number,
+  idadeFinal: number,
+): FluxoPosParar {
+  const idadeInicio = Math.round(limitar(fluxo.idadeInicio, idadeParar, idadeFinal - 1))
+  return {
+    ...fluxo,
+    nome: fluxo.nome.slice(0, 40),
+    tipo: fluxo.tipo === 'despesa' ? 'despesa' : 'renda',
+    valorMensal: limitar(fluxo.valorMensal, 0, 1e7),
+    idadeInicio,
+    idadeFim: Math.round(limitar(fluxo.idadeFim, idadeInicio + 1, idadeFinal)),
+  }
+}
+
 /** Garante faixas válidas e coerência entre idades. */
 export function normalizar(p: Premissas): Premissas {
   const idadeAtual = Math.round(limitar(p.idadeAtual, 18, 70))
@@ -80,6 +98,15 @@ export function normalizar(p: Premissas): Premissas {
       caixinhaMensal: 0,
     }
   })
+  const idsFluxos = new Set<string>()
+  const fluxosPosParar = p.fluxosPosParar.slice(0, MAX_FLUXOS_POS_PARAR).map((fluxo, i) => {
+    const baseId = fluxo.id.slice(0, 24) || `fluxo-${i + 1}`
+    let id = baseId
+    let sufixo = 2
+    while (idsFluxos.has(id)) id = `${baseId.slice(0, 20)}-${sufixo++}`
+    idsFluxos.add(id)
+    return { ...normalizarFluxoPosParar(fluxo, idadeParar, idadeFinal), id }
+  })
   return {
     ...p,
     idadeAtual,
@@ -97,6 +124,7 @@ export function normalizar(p: Premissas): Premissas {
     estrategiaPosParar: p.estrategiaPosParar === 'renda_passiva' ? 'renda_passiva' : 'retirada',
     taxaRendaPassiva: limitar(Number.isFinite(p.taxaRendaPassiva) ? p.taxaRendaPassiva : 4, 0.1, 15),
     taxaRetirada: limitar(p.taxaRetirada, 2, 6),
+    fluxosPosParar,
     aporteModo: p.aporteModo === 'fixo' ? 'fixo' : 'percentual',
     cenarios: {
       pessimista: { id: 'pessimista', nome: 'Pessimista', rentAnual: limitar(p.cenarios.pessimista.rentAnual, 0, 25), vol: limitar(p.cenarios.pessimista.vol, 0, 30) },
@@ -124,13 +152,21 @@ export function sanear(entrada: unknown): Premissas {
     const m = mesclar(novaCompra(p.idadeAtual), e)
     return ehObj(e) && typeof e.id === 'string' ? { ...m, id: e.id.slice(0, 24) } : { ...m, id: `extra-${i}` }
   })
+  const fluxosIn = ehObj(entrada) && Array.isArray(entrada.fluxosPosParar) ? entrada.fluxosPosParar : base.fluxosPosParar
+  p.fluxosPosParar = fluxosIn.slice(0, MAX_FLUXOS_POS_PARAR).map((fluxo, i) => {
+    const modelo = novoFluxoPosParar(p.idadeParar, p.idadeFinal)
+    const mesclado = mesclar(modelo, fluxo)
+    return ehObj(fluxo) && typeof fluxo.id === 'string'
+      ? { ...mesclado, id: fluxo.id.slice(0, 24) }
+      : { ...mesclado, id: `fluxo-${i}` }
+  })
   p.anoBase = base.anoBase
   return normalizar(p)
 }
 
 function extrairPremissasDoLink(entrada: unknown): unknown {
   if (!ehObj(entrada) || !('versao' in entrada)) return entrada // compatibilidade com links v1
-  if ((entrada.versao !== 2 && entrada.versao !== VERSAO_LINK) || !('premissas' in entrada)) {
+  if ((entrada.versao !== 2 && entrada.versao !== 3 && entrada.versao !== VERSAO_LINK) || !('premissas' in entrada)) {
     throw new Error('versão de link incompatível')
   }
   return entrada.premissas
@@ -168,6 +204,7 @@ export function carregarInicial(): CargaInicial {
   try {
     const salvo =
       window.localStorage.getItem(CHAVE_LS) ??
+      window.localStorage.getItem(CHAVE_LS_ANTIGA_V3) ??
       window.localStorage.getItem(CHAVE_LS_ANTIGA_V2) ??
       window.localStorage.getItem(CHAVE_LS_ANTIGA_V1)
     if (salvo) return { premissas: sanear(JSON.parse(salvo)), origem: 'local', aviso: null }
@@ -193,6 +230,7 @@ export function persistir(p: Premissas): void {
 export function limparPersistencia(): void {
   try {
     window.localStorage.removeItem(CHAVE_LS)
+    window.localStorage.removeItem(CHAVE_LS_ANTIGA_V3)
     window.localStorage.removeItem(CHAVE_LS_ANTIGA_V2)
     window.localStorage.removeItem(CHAVE_LS_ANTIGA_V1)
   } catch {

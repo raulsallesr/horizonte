@@ -67,4 +67,33 @@ describe('normalização de estado compartilhado', () => {
     expect(n.estrategiaPosParar).toBe('retirada')
     expect(n.taxaRendaPassiva).toBe(15)
   })
+
+  it('saneia fases temporárias, limita idades e garante ids únicos', () => {
+    const p = premissasPadrao(2026)
+    const n = sanear({
+      ...p,
+      fluxosPosParar: [
+        { id: 'repetido', nome: 'Renda parcial', tipo: 'renda', valorMensal: 2_000, idadeInicio: 20, idadeFim: 200 },
+        { id: 'repetido', nome: 'Custo temporário', tipo: 'tipo-invalido', valorMensal: -10, idadeInicio: 56, idadeFim: 56 },
+      ],
+    })
+
+    expect(n.fluxosPosParar).toHaveLength(2)
+    expect(new Set(n.fluxosPosParar.map((f) => f.id)).size).toBe(2)
+    expect(n.fluxosPosParar[0]).toMatchObject({ tipo: 'renda', idadeInicio: 55, idadeFim: 90 })
+    expect(n.fluxosPosParar[1]).toMatchObject({ tipo: 'renda', valorMensal: 0, idadeInicio: 56, idadeFim: 57 })
+  })
+
+  it('migra links v3 sem fases para a lista vazia', () => {
+    const legado = { ...premissasPadrao(2026) } as Partial<ReturnType<typeof premissasPadrao>>
+    delete legado.fluxosPosParar
+    const bytes = new TextEncoder().encode(JSON.stringify({ versao: 3, premissas: legado }))
+    let binario = ''
+    bytes.forEach((byte) => (binario += String.fromCharCode(byte)))
+    const texto = btoa(binario).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+
+    const lido = lerPremissasCompartilhadas(texto)
+    expect(lido.fluxosPosParar).toEqual([])
+    expect(lido.estrategiaPosParar).toBe('renda_passiva')
+  })
 })

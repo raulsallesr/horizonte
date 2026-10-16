@@ -4,6 +4,20 @@ Todas as mudanças relevantes do projeto serão registradas neste arquivo.
 
 ## Não publicado
 
+## [1.4.0] — 2026-10-16
+
+### Adicionado
+
+- Fases temporárias de renda ou despesa depois de parar de trabalhar, com valor mensal e idades de início e fim.
+- Combinação aditiva de fases simultâneas para representar trabalho parcial, benefício com início posterior, aluguel temporário ou custos transitórios.
+- Colunas opcionais na tabela e no CSV para auditar separadamente rendas e despesas programadas.
+- Testes do intervalo mensal, sobreposição, impacto na renda passiva, saneamento e migração de links anteriores.
+
+### Alterado
+
+- Diagnóstico, recomendações e Monte Carlo passam a considerar os fluxos temporários no mesmo motor mensal.
+- Schema dos links e do armazenamento local passa à versão 4, mantendo compatibilidade com as versões 1, 2 e 3.
+
 ## [1.3.0] — 2026-10-16
 
 ### Adicionado

@@ -1,7 +1,7 @@
 import { numeroLiberdade } from '../engine/metas'
 import { fmtBRLCompacto } from '../engine/formatos'
-import { novaCompra } from '../engine/padrao'
-import type { Compra, IdCenario, Premissas } from '../engine/types'
+import { novaCompra, novoFluxoPosParar } from '../engine/padrao'
+import type { Compra, FluxoPosParar, IdCenario, Premissas } from '../engine/types'
 import { Campo, CampoTexto, Icone, Interruptor, Secao, Segmentado } from './ui'
 
 interface Props {
@@ -19,6 +19,8 @@ export function PainelPremissas({ p, set, modo, onModo }: Props) {
     set((x) => ({ ...x, barco: { ...x.barco, ...patch } }))
   const upExtra = (id: string, patch: Partial<Compra>) =>
     set((x) => ({ ...x, extras: x.extras.map((e) => (e.id === id ? { ...e, ...patch } : e)) }))
+  const upFluxo = (id: string, patch: Partial<FluxoPosParar>) =>
+    set((x) => ({ ...x, fluxosPosParar: x.fluxosPosParar.map((f) => (f.id === id ? { ...f, ...patch } : f)) }))
   const soRendaPassiva = p.estrategiaPosParar === 'renda_passiva'
 
   return (
@@ -105,7 +107,9 @@ export function PainelPremissas({ p, set, modo, onModo }: Props) {
           <Icone nome="investimentos" />
           <p>
             O cálculo usa inflação de <strong>{p.inflacao.toLocaleString('pt-BR')}%</strong> e retorno Base líquido de{' '}
-            <strong>{p.cenarios.base.rentAnual.toLocaleString('pt-BR')}% a.a.</strong> Abra o modo avançado para alterar.
+            <strong>{p.cenarios.base.rentAnual.toLocaleString('pt-BR')}% a.a.</strong>
+            {p.fluxosPosParar.length > 0 && <> Também considera <strong>{p.fluxosPosParar.length} {p.fluxosPosParar.length === 1 ? 'fase temporária' : 'fases temporárias'}</strong> após parar.</>}{' '}
+            Abra o modo avançado para alterar.
           </p>
         </div>
       ) : <Secao titulo="Investimentos e inflação" icone="investimentos">
@@ -191,6 +195,88 @@ export function PainelPremissas({ p, set, modo, onModo }: Props) {
           <strong>{fmtBRLCompacto(numeroLiberdade(p))}</strong> <span>(em R$ de hoje)</span>
         </p>
       </Secao>
+
+      {modo === 'avancado' && (
+        <Secao titulo="Fases após parar" icone="renda" aberta={false}>
+          <div className="estrategia-nota" role="note">
+            <Icone nome="renda" />
+            <p>
+              Adicione rendas ou despesas que existam apenas por alguns anos. As fases valem da idade inicial até a véspera da idade final, em R$ de hoje; fases simultâneas são somadas. Elas mudam a projeção, mas não reduzem o patrimônio-alvo permanente.
+            </p>
+          </div>
+          {p.fluxosPosParar.length === 0 && (
+            <p className="estado-vazio">Nenhuma fase temporária. O plano usa apenas a despesa e a outra renda permanentes.</p>
+          )}
+          <div aria-live="polite" className="sr-only">
+            {p.fluxosPosParar.length} {p.fluxosPosParar.length === 1 ? 'fase configurada' : 'fases configuradas'}.
+          </div>
+          {p.fluxosPosParar.map((fluxo) => (
+            <div key={fluxo.id} className={`fase-card fase-${fluxo.tipo}`}>
+              <p className="fase-resumo">
+                <strong>{fluxo.tipo === 'renda' ? 'Renda temporária' : 'Despesa temporária'}</strong>
+                <span>dos {fluxo.idadeInicio} aos {fluxo.idadeFim} anos</span>
+              </p>
+              <CampoTexto rotulo="Nome da fase" valor={fluxo.nome} onChange={(v) => upFluxo(fluxo.id, { nome: v })} />
+              <Segmentado
+                rotulo={`Tipo da fase ${fluxo.nome}`}
+                valor={fluxo.tipo}
+                onChange={(v) => upFluxo(fluxo.id, { tipo: v })}
+                opcoes={[
+                  { id: 'renda', nome: 'Renda' },
+                  { id: 'despesa', nome: 'Despesa' },
+                ]}
+              />
+              <Campo
+                rotulo="Valor mensal"
+                valor={fluxo.valorMensal}
+                min={0}
+                max={30000}
+                passo={250}
+                prefixo="R$"
+                maxDigitavel={1e7}
+                ajuda="Valor de hoje; será corrigido pela inflação."
+                onChange={(v) => upFluxo(fluxo.id, { valorMensal: v })}
+              />
+              <Campo
+                rotulo="Começa aos"
+                valor={fluxo.idadeInicio}
+                min={p.idadeParar}
+                max={p.idadeFinal - 1}
+                sufixo="anos"
+                onChange={(v) => upFluxo(fluxo.id, { idadeInicio: v })}
+              />
+              <Campo
+                rotulo="Termina aos"
+                valor={fluxo.idadeFim}
+                min={fluxo.idadeInicio + 1}
+                max={p.idadeFinal}
+                sufixo="anos"
+                ajuda="A fase deixa de valer a partir desta idade."
+                onChange={(v) => upFluxo(fluxo.id, { idadeFim: v })}
+              />
+              <button
+                type="button"
+                className="link-perigo"
+                onClick={() => set((x) => ({ ...x, fluxosPosParar: x.fluxosPosParar.filter((f) => f.id !== fluxo.id) }))}
+              >
+                Remover fase
+              </button>
+            </div>
+          ))}
+          {p.fluxosPosParar.length < 8 && (
+            <button
+              type="button"
+              className="btn"
+              onClick={() => set((x) => ({
+                ...x,
+                fluxosPosParar: [...x.fluxosPosParar, novoFluxoPosParar(x.idadeParar, x.idadeFinal)],
+              }))}
+            >
+              + Adicionar fase de renda ou despesa
+            </button>
+          )}
+        </Secao>
+      )}
 
       <Secao titulo="Meta: o barco" icone="barco">
         <Interruptor rotulo="Incluir o barco na simulação" valor={p.barco.ativo} onChange={(v) => upBarco({ ativo: v })} />

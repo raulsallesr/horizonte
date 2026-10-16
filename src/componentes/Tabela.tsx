@@ -15,16 +15,22 @@ export function Tabela({ p, series, v }: Props) {
   const [id, setId] = useState<IdCenario>('base')
   const linhas = useMemo(() => resumoAnual(p, series[id]), [p, series, id])
   const soRendaPassiva = p.estrategiaPosParar === 'renda_passiva'
+  const temFases = p.fluxosPosParar.length > 0
   const f = (l: { defl: number }) => (v.real ? 1 / l.defl : 1)
   const rend = (l: { rendimento: number; rendimentoReal: number }) => (v.real ? l.rendimentoReal : l.rendimento)
 
   const exportar = () => {
+    const cabBase = ['Idade', 'Ano', 'Patrimônio', 'Aportes no ano']
+    if (temFases) cabBase.push('Rendas programadas', 'Despesas programadas')
+    cabBase.push('Rendimento no ano')
     const cab = soRendaPassiva
-      ? ['Idade', 'Ano', 'Patrimônio', 'Aportes no ano', 'Rendimento no ano', 'Renda passiva gerada', 'Renda passiva usada', 'Déficit não coberto', 'Compras e manutenção']
-      : ['Idade', 'Ano', 'Patrimônio', 'Aportes no ano', 'Rendimento no ano', 'Retiradas no ano', 'Compras e manutenção']
+      ? [...cabBase, 'Renda passiva gerada', 'Renda passiva usada', 'Déficit não coberto', 'Compras e manutenção']
+      : [...cabBase, 'Retiradas no ano', 'Compras e manutenção']
     const num = (n: number) => n.toFixed(2).replace('.', ',')
     const corpo = linhas.map((l) => {
-      const base = [Math.round(l.idade), l.ano, num(v.real ? l.patReal : l.patNominal), num(l.aporte * f(l)), num(rend(l))]
+      const base = [Math.round(l.idade), l.ano, num(v.real ? l.patReal : l.patNominal), num(l.aporte * f(l))]
+      if (temFases) base.push(num(l.rendaProgramada * f(l)), num(l.despesaProgramada * f(l)))
+      base.push(num(rend(l)))
       const posParar = soRendaPassiva
         ? [num(l.rendaPassiva * f(l)), num(l.retirada * f(l)), num(l.deficitRenda * f(l))]
         : [num(l.retirada * f(l))]
@@ -60,6 +66,7 @@ export function Tabela({ p, series, v }: Props) {
       <p className="ajuda">
         {v.real ? 'Valores em R$ de hoje.' : 'Valores nominais (futuros).'}{' '}
         {soRendaPassiva && 'O déficit não coberto não é retirado do principal.'}
+        {temFases && ' Rendas e despesas programadas mostram apenas as fases temporárias.'}
       </p>
       <div className="tabela-rolagem">
         <table>
@@ -70,6 +77,12 @@ export function Tabela({ p, series, v }: Props) {
               <th>Ano</th>
               <th>Patrimônio</th>
               <th>Aportes</th>
+              {temFases && (
+                <>
+                  <th>Rendas programadas</th>
+                  <th>Despesas programadas</th>
+                </>
+              )}
               <th>Rendimento</th>
               {soRendaPassiva ? (
                 <>
@@ -88,6 +101,12 @@ export function Tabela({ p, series, v }: Props) {
                 <td>{l.ano}</td>
                 <td>{fmtBRL(v.real ? l.patReal : l.patNominal)}</td>
                 <td>{fmtBRL(l.aporte * f(l))}</td>
+                {temFases && (
+                  <>
+                    <td>{fmtBRL(l.rendaProgramada * f(l))}</td>
+                    <td>{fmtBRL(l.despesaProgramada * f(l))}</td>
+                  </>
+                )}
                 <td>{fmtBRL(rend(l))}</td>
                 {soRendaPassiva ? (
                   <>

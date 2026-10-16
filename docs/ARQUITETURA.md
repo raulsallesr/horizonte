@@ -10,6 +10,7 @@ O Horizonte é uma aplicação web estática. Não possui backend, autenticaçã
 Premissas do usuário
         │
         ├── normalização e saneamento
+        │        ├── fases pós-trabalho com início e fim
         │        └── localStorage + hash compartilhável
         │
         ├── projeção determinística mensal
@@ -42,6 +43,8 @@ Premissas do usuário
 Hash de URL e `localStorage` nunca são aceitos diretamente. O estado passa por mesclagem com valores padrão, limites numéricos, ids únicos e regras de coerência entre idades. Nomes e ids dos cenários são canônicos. Atributos que não existem na interface de metas extras não podem ser ativados por um link.
 
 Links novos usam um envelope versionado. Links antigos continuam compatíveis. Uma versão desconhecida ou um conteúdo inválido carrega o exemplo padrão e exibe um aviso; dados locais não substituem silenciosamente um link defeituoso.
+
+O schema 4 adiciona uma lista limitada e saneada de fases pós-trabalho. Cada item recebe id único, tipo canônico, valor finito e idades contidas entre a parada e o fim do horizonte. Links das versões 1, 2 e 3 continuam aceitos e são carregados sem fases.
 
 ### Cálculo pesado
 

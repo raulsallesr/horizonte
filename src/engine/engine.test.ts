@@ -179,6 +179,73 @@ describe('projeção determinística', () => {
     expect(numeroLiberdade(p)).toBeCloseTo((3000 * 12) / 0.04, 6)
   })
 
+  it('aplica rendas e despesas temporárias apenas no intervalo programado', () => {
+    const p = limpa({
+      patrimonioInicial: 1_000_000,
+      idadeAtual: 60,
+      idadeParar: 60,
+      idadeFinal: 63,
+      despesaMensal: 5_000,
+      fluxosPosParar: [
+        { id: 'parcial', nome: 'Trabalho parcial', tipo: 'renda', valorMensal: 2_000, idadeInicio: 60, idadeFim: 61 },
+        { id: 'saude', nome: 'Saúde', tipo: 'despesa', valorMensal: 500, idadeInicio: 61, idadeFim: 62 },
+      ],
+    })
+    p.cenarios.base = { ...p.cenarios.base, rentAnual: 0, vol: 0 }
+    const s = projetar(p, 'base')
+
+    expect(s.retirada[1]).toBe(3_000)
+    expect(s.rendaProgramada[1]).toBe(2_000)
+    expect(s.despesaProgramada[1]).toBe(0)
+    expect(s.retirada[13]).toBe(5_500)
+    expect(s.rendaProgramada[13]).toBe(0)
+    expect(s.despesaProgramada[13]).toBe(500)
+    expect(s.retirada[25]).toBe(5_000)
+  })
+
+  it('soma fases simultâneas e as inclui no resumo anual', () => {
+    const p = limpa({
+      patrimonioInicial: 1_000_000,
+      idadeAtual: 60,
+      idadeParar: 60,
+      idadeFinal: 61,
+      despesaMensal: 5_000,
+      fluxosPosParar: [
+        { id: 'inss', nome: 'INSS', tipo: 'renda', valorMensal: 1_000, idadeInicio: 60, idadeFim: 61 },
+        { id: 'aluguel', nome: 'Aluguel', tipo: 'renda', valorMensal: 500, idadeInicio: 60, idadeFim: 61 },
+      ],
+    })
+    p.cenarios.base = { ...p.cenarios.base, rentAnual: 0, vol: 0 }
+    const s = projetar(p, 'base')
+    const [ano] = resumoAnual(p, s)
+
+    expect(s.retirada[1]).toBe(3_500)
+    expect(s.rendaProgramada[1]).toBe(1_500)
+    expect(ano.rendaProgramada).toBe(18_000)
+    expect(ano.despesaProgramada).toBe(0)
+  })
+
+  it('renda temporária reduz o déficit passivo sem vender o principal', () => {
+    const p = limpa({
+      estrategiaPosParar: 'renda_passiva',
+      taxaRendaPassiva: 12,
+      patrimonioInicial: 100_000,
+      idadeAtual: 60,
+      idadeParar: 60,
+      idadeFinal: 61,
+      despesaMensal: 2_500,
+      fluxosPosParar: [
+        { id: 'parcial', nome: 'Trabalho parcial', tipo: 'renda', valorMensal: 1_000, idadeInicio: 60, idadeFim: 61 },
+      ],
+    })
+    p.cenarios.base = { ...p.cenarios.base, rentAnual: (Math.pow(1.01, 12) - 1) * 100, vol: 0 }
+    const s = projetar(p, 'base')
+
+    expect(s.retirada[1]).toBeCloseTo(1_000, 6)
+    expect(s.deficitRenda[1]).toBeCloseTo(500, 6)
+    expect(s.pat[1]).toBeCloseTo(100_000, 6)
+  })
+
   it('caixinha: compra sai da caixinha e a sobra volta ao patrimônio', () => {
     const p = limpa({
       patrimonioInicial: 0,

@@ -35,6 +35,22 @@ test('distingue renda passiva sem venda da retirada do patrimônio', async ({ pa
   await expect(page.getByText(/venda gradual de ativos/)).toBeVisible()
 })
 
+test('configura uma fase temporária de renda ou despesa após parar', async ({ page }) => {
+  await abrir(page)
+  await page.getByRole('button', { name: 'Avançado' }).click()
+  await page.getByText('Fases após parar', { exact: true }).click()
+  await expect(page.getByText('Nenhuma fase temporária.')).toBeVisible()
+
+  await page.getByRole('button', { name: 'Adicionar fase de renda ou despesa' }).click()
+  await expect(page.getByText('Renda temporária', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Renda', exact: true })).toHaveAttribute('aria-pressed', 'true')
+
+  await page.getByRole('button', { name: 'Despesa', exact: true }).click()
+  await expect(page.getByText('Despesa temporária', { exact: true })).toBeVisible()
+  const dimensoes = await page.evaluate(() => ({ largura: innerWidth, conteudo: document.documentElement.scrollWidth }))
+  expect(dimensoes.conteudo).toBeLessThanOrEqual(dimensoes.largura)
+})
+
 test('recalcula diagnóstico e oferece ações para um plano inviável', async ({ page }) => {
   await abrir(page)
   const grupo = page.locator('.campo').filter({ has: page.getByText('Parar de trabalhar aos', { exact: true }) })

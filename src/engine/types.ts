@@ -1,5 +1,6 @@
 export type IdCenario = 'pessimista' | 'base' | 'otimista'
 export type EstrategiaPosParar = 'renda_passiva' | 'retirada'
+export type TipoFluxoPosParar = 'renda' | 'despesa'
 
 export interface Cenario {
   id: IdCenario
@@ -25,6 +26,18 @@ export interface Compra {
   modo: ModoCompra
   /** Quanto separar por mês (R$ de hoje) quando modo = 'caixinha'. */
   caixinhaMensal: number
+}
+
+export interface FluxoPosParar {
+  id: string
+  nome: string
+  tipo: TipoFluxoPosParar
+  /** Valor mensal em R$ de hoje, corrigido pela inflação durante a projeção. */
+  valorMensal: number
+  /** A fase começa nesta idade, inclusive. */
+  idadeInicio: number
+  /** A fase termina nesta idade, exclusive. */
+  idadeFim: number
 }
 
 export interface Premissas {
@@ -58,6 +71,8 @@ export interface Premissas {
   taxaRendaPassiva: number
   /** Taxa de retirada segura, % a.a. do patrimônio (real). */
   taxaRetirada: number
+  /** Rendas e despesas mensais temporárias depois de parar de trabalhar. */
+  fluxosPosParar: FluxoPosParar[]
   cenarios: Record<IdCenario, Cenario>
   barco: Compra & { ativo: boolean }
   extras: Compra[]
@@ -78,6 +93,10 @@ export interface Serie {
   rendaPassiva: Float64Array
   /** Parte da despesa que a renda distribuída não cobriu; não é debitada do principal. */
   deficitRenda: Float64Array
+  /** Rendas temporárias ativas no mês, sem incluir a outra renda permanente. */
+  rendaProgramada: Float64Array
+  /** Despesas temporárias somadas à despesa-base no mês. */
+  despesaProgramada: Float64Array
   retirada: Float64Array
   compra: Float64Array
   /** Índice do mês em que o patrimônio zerou, ou -1. */
@@ -116,6 +135,8 @@ export interface LinhaAnual {
   rendimentoReal: number
   rendaPassiva: number
   deficitRenda: number
+  rendaProgramada: number
+  despesaProgramada: number
   retirada: number
   compra: number
   /** Deflator no fim do ano. */

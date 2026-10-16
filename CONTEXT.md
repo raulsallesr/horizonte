@@ -4,6 +4,7 @@ Este arquivo é o ponto de retomada entre sessões. Leia-o antes de iniciar uma 
 
 - **Última atualização:** 16/10/2026
 - **Estado publicado:** `v1.3.0`
+- **Próxima entrega validada localmente:** `v1.4.0` (fases pós-trabalho)
 - **Commit da release:** `c85c466` (`feat: adicionar estrategia de renda passiva`)
 
 ## Estado atual
@@ -38,6 +39,17 @@ Este arquivo é o ponto de retomada entre sessões. Leia-o antes de iniciar uma 
 
 Validação em 16/10/2026: lint, 40 testes unitários, build e 18 cenários Playwright aprovados; axe não encontrou violações WCAG A/AA em desktop ou mobile; Lighthouse marcou performance 91, acessibilidade 100 e SEO 100; `npm audit` encontrou 0 vulnerabilidades. O GitHub Actions concluiu com sucesso tanto a publicação do site quanto a criação do release `v1.3.0`.
 
+## O que está pronto para a v1.4.0
+
+- fases temporárias de renda ou despesa depois de parar, com valores mensais e idades de início e fim;
+- início inclusivo, fim exclusivo e soma explícita de fases simultâneas;
+- suporte a trabalho parcial, benefício com início posterior, aluguel temporário e custos transitórios;
+- integração com projeção, diagnóstico, recomendações, Monte Carlo, tabela, CSV e link compartilhável;
+- número da liberdade preservado como alvo permanente, sem redução por renda temporária;
+- schema 4 com migração de links e dados das versões anteriores para lista vazia de fases.
+
+Validação local em 16/10/2026: lint, 45 testes unitários, build e 20 cenários Playwright aprovados; axe não encontrou violações WCAG A/AA; temas claro e escuro revisados em 390 × 844 pixels; `npm audit` encontrou 0 vulnerabilidades. O Lighthouse local sofreu tarefas longas atípicas e injeção conhecida do Kaspersky; os limites permanecem intactos e a CI limpa é obrigatória antes da publicação.
+
 ## Evidências da validação
 
 Em 15/10/2026, antes da publicação:
@@ -68,12 +80,13 @@ Os critérios completos e os casos manuais estão em [docs/VALIDACAO.md](docs/VA
 
 ## Pendências e próxima ordem de trabalho
 
-1. Ativar manualmente o ruleset da branch `main` conforme [docs/GITHUB.md](docs/GITHUB.md): bloquear exclusão e `force push`, exigir o check `build` e a resolução de conversas.
-2. Observar a estabilidade dos gates nas próximas execuções reais da CI.
-3. Validar instalação e retomada offline da PWA em aparelhos físicos.
-4. Escolher a próxima evolução financeira do [roadmap](docs/ROADMAP.md) e documentar seu contrato antes de implementar.
+1. Publicar a `v1.4.0` somente se o pipeline limpo do GitHub Actions aprovar todos os gates, inclusive Lighthouse.
+2. Ativar manualmente o ruleset da branch `main` conforme [docs/GITHUB.md](docs/GITHUB.md): bloquear exclusão e `force push`, exigir o check `build` e a resolução de conversas.
+3. Observar a estabilidade dos gates nas próximas execuções reais da CI.
+4. Validar instalação e retomada offline da PWA em aparelhos físicos.
+5. Escolher a próxima evolução financeira do [roadmap](docs/ROADMAP.md) e documentar seu contrato antes de implementar.
 
-A ativação do ruleset é administrativa e não pode ser inferida apenas pelo conteúdo do repositório. Confirme o estado ao vivo no GitHub antes de marcá-la como concluída.
+A API pública do GitHub foi consultada em 16/10/2026 e não retornou rulesets ativos. A ativação é administrativa e não pode ser concluída sem acesso autenticado ao painel.
 
 ## Roteiro de retomada
 

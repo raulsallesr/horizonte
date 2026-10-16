@@ -45,6 +45,8 @@ export function simular(
   const rendimento = mk()
   const rendaPassiva = mk()
   const deficitRenda = mk()
+  const rendaProgramada = mk()
+  const despesaProgramada = mk()
   const retirada = mk()
   const compra = mk()
 
@@ -68,7 +70,8 @@ export function simular(
     defl[k] = f
     const rm = opts.retornos ? opts.retornos[k - 1] : rmFixo
     const anoIdx = Math.floor((k - 1) / 12)
-    const trabalhando = p.idadeAtual + (k - 1) / 12 < p.idadeParar
+    const idadeNoInicioMes = p.idadeAtual + (k - 1) / 12
+    const trabalhando = idadeNoInicioMes < p.idadeParar
 
     // O retorno total fica integralmente reinvestido enquanto a pessoa trabalha.
     // Depois, no modo renda passiva, apenas a parcela distribuída pode pagar despesas.
@@ -84,6 +87,8 @@ export function simular(
     let ap = 0
     let renda = 0
     let deficit = 0
+    let rendaFase = 0
+    let despesaFase = 0
     let ret = 0
     let cmp = 0
     let sepTotal = 0
@@ -97,7 +102,15 @@ export function simular(
           ? (p.aportePercentual / 100) * rendaMes
           : p.aporteFixo * Math.pow(gApo, anoIdx) * f * multiplicadorDezembro
     } else {
-      const necessidade = Math.max(0, (p.despesaMensal - p.outraRendaPosParar) * f)
+      for (const fluxo of p.fluxosPosParar) {
+        if (idadeNoInicioMes < fluxo.idadeInicio || idadeNoInicioMes >= fluxo.idadeFim) continue
+        if (fluxo.tipo === 'renda') rendaFase += fluxo.valorMensal
+        else despesaFase += fluxo.valorMensal
+      }
+      const necessidade = Math.max(
+        0,
+        (p.despesaMensal + despesaFase - p.outraRendaPosParar - rendaFase) * f,
+      )
       if (p.estrategiaPosParar === 'renda_passiva') {
         // O retorno do cenário já inclui dividendos/juros. A renda distribuída
         // é somente a parte que pode sair em dinheiro, nunca um retorno adicional.
@@ -186,6 +199,8 @@ export function simular(
       rendimento[k] = rend
       rendaPassiva[k] = renda
       deficitRenda[k] = deficit
+      rendaProgramada[k] = rendaFase * f
+      despesaProgramada[k] = despesaFase * f
       retirada[k] = ret
       compra[k] = cmp
     }
@@ -218,6 +233,8 @@ export function simular(
     rendimento,
     rendaPassiva,
     deficitRenda,
+    rendaProgramada,
+    despesaProgramada,
     retirada,
     compra,
     esgotouK,
@@ -242,6 +259,8 @@ export function resumoAnual(p: Premissas, s: Serie): LinhaAnual[] {
     let rdReal = 0
     let rp = 0
     let dr = 0
+    let rf = 0
+    let df = 0
     let rt = 0
     let cp = 0
     for (let k = ini; k <= fim; k++) {
@@ -251,6 +270,8 @@ export function resumoAnual(p: Premissas, s: Serie): LinhaAnual[] {
       rdReal += s.rendimento[k] / s.defl[k] + s.pat[k - 1] * (1 / s.defl[k] - 1 / s.defl[k - 1])
       rp += s.rendaPassiva[k]
       dr += s.deficitRenda[k]
+      rf += s.rendaProgramada[k]
+      df += s.despesaProgramada[k]
       rt += s.retirada[k]
       cp += s.compra[k]
     }
@@ -264,6 +285,8 @@ export function resumoAnual(p: Premissas, s: Serie): LinhaAnual[] {
       rendimentoReal: rdReal,
       rendaPassiva: rp,
       deficitRenda: dr,
+      rendaProgramada: rf,
+      despesaProgramada: df,
       retirada: rt,
       compra: cp,
       defl: s.defl[fim],

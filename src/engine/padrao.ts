@@ -1,4 +1,4 @@
-import type { Compra, Premissas } from './types'
+import type { Compra, FluxoPosParar, Premissas } from './types'
 
 /** Persona fictícia "Marina, 30 anos" — nenhum dado real. */
 export function premissasPadrao(anoBase = new Date().getFullYear()): Premissas {
@@ -22,6 +22,7 @@ export function premissasPadrao(anoBase = new Date().getFullYear()): Premissas {
     estrategiaPosParar: 'renda_passiva',
     taxaRendaPassiva: 4,
     taxaRetirada: 4,
+    fluxosPosParar: [],
     cenarios: {
       pessimista: { id: 'pessimista', nome: 'Pessimista', rentAnual: 9, vol: 7 },
       base: { id: 'base', nome: 'Base', rentAnual: 11, vol: 9 },
@@ -48,6 +49,17 @@ export function premissasPadrao(anoBase = new Date().getFullYear()): Premissas {
         caixinhaMensal: 0,
       },
     ],
+  }
+}
+
+export function novoFluxoPosParar(idadeParar: number, idadeFinal: number): FluxoPosParar {
+  return {
+    id: `fluxo-${Math.random().toString(36).slice(2, 8)}`,
+    nome: 'Trabalho parcial',
+    tipo: 'renda',
+    valorMensal: 2000,
+    idadeInicio: idadeParar,
+    idadeFim: Math.min(idadeFinal, idadeParar + 5),
   }
 }
 

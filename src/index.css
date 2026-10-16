@@ -503,6 +503,37 @@ label {
   border-radius: 10px;
   padding: 10px;
 }
+.fase-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--borda);
+  border-left: 3px solid var(--c-base);
+  border-radius: 10px;
+  padding: 12px;
+}
+.fase-despesa {
+  border-left-color: var(--c-pess);
+}
+.fase-resumo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+.fase-resumo span,
+.estado-vazio {
+  color: var(--muted);
+}
+.estado-vazio {
+  padding: 10px 12px;
+  border: 1px dashed var(--borda);
+  border-radius: 10px;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
 .link-perigo {
   align-self: flex-start;
   background: none;
@@ -1169,6 +1200,10 @@ tr.marca td {
   .campo-entrada,
   .texto {
     margin-left: auto;
+  }
+  .fase-resumo {
+    align-items: flex-start;
+    flex-direction: column;
   }
   .campo-entrada input,
   .texto {

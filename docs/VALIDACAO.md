@@ -23,6 +23,7 @@ Os testes automatizados cobrem:
 - reinvestimento integral dos retornos durante a fase de trabalho;
 - renda passiva limitada à distribuição, reinvestimento do excedente e déficit sem venda do principal;
 - fase de retirada e outras rendas;
+- fases temporárias de renda e despesa, inclusive intervalos exclusivos e sobreposição;
 - compra à vista, caixinha, manutenção e meta sem recursos;
 - conservação dos fluxos;
 - número e idade sustentada da liberdade;
@@ -38,7 +39,7 @@ Os testes automatizados cobrem:
 - cálculo de aporte mínimo e primeira idade viável;
 - alternativas de prazo e valor para meta sem recursos.
 
-O Playwright complementa os testes puros com fluxos reais em desktop e mobile: carga responsiva, modos simples/avançado, seleção da estratégia pós-trabalho, plano inviável, comparação, detalhes sob demanda, zoom, paisagem, movimento reduzido, axe WCAG A/AA e recarregamento offline.
+O Playwright complementa os testes puros com fluxos reais em desktop e mobile: carga responsiva, modos simples/avançado, seleção da estratégia pós-trabalho, criação de fase temporária, plano inviável, comparação, detalhes sob demanda, zoom, paisagem, movimento reduzido, axe WCAG A/AA e recarregamento offline.
 
 O Lighthouse exige performance ≥ 80, acessibilidade ≥ 95, boas práticas ≥ 90, SEO ≥ 90, FCP ≤ 2,5 s, LCP ≤ 3,2 s, TBT ≤ 350 ms, CLS ≤ 0,1 e transferência da aplicação ≤ 1 MB. Uma injeção local conhecida do Kaspersky é identificada e relatada, mas o limite de boas práticas continua obrigatório em ambientes limpos.
 
@@ -69,6 +70,9 @@ Antes de publicar uma mudança de interface:
 7. Só renda passiva, com renda inferior à despesa: o déficit deve aparecer e o principal não pode ser usado para completá-lo.
 8. Só renda passiva, com renda superior à despesa: apenas a parte necessária deve sair e o excedente deve permanecer reinvestido.
 9. Alternar para renda mais retiradas: o fluxo deve voltar a permitir consumo gradual do patrimônio.
+10. Criar duas rendas temporárias simultâneas: ambas devem reduzir a necessidade mensal durante a interseção.
+11. Encerrar uma fase aos 60 anos: ela deve valer até o mês anterior aos 60 e desaparecer a partir dessa idade.
+12. Adicionar uma despesa temporária no modo renda passiva: o déficit pode aumentar, mas o principal não pode ser vendido para cobri-lo.
 
 ## Evidência do ciclo 1.1.0
 
@@ -108,3 +112,17 @@ Em 16/10/2026:
 - `npm run test:lighthouse`: aprovado com performance 91, acessibilidade 100, SEO 100, FCP 2,43 s, LCP 2,86 s, TBT 144 ms, CLS 0,03 e 91 KiB da aplicação;
 - boas práticas locais: 81 apenas pela injeção conhecida do Kaspersky; o gate ≥ 90 permanece ativo em CI limpa;
 - `npm audit --audit-level=moderate`: 0 vulnerabilidades.
+
+## Evidência local do ciclo 1.4.0
+
+Em 16/10/2026, antes da publicação:
+
+- `npm run lint`: aprovado;
+- `npm test`: 45 testes aprovados em 4 arquivos;
+- `npm run build`: aprovado com TypeScript 6 e Vite 8;
+- `npm run test:e2e`: 20 cenários aprovados — 10 em desktop e 10 em mobile;
+- axe: nenhuma violação WCAG A/AA detectável nas duas configurações;
+- criação e troca de tipo da fase validadas sem rolagem horizontal em desktop e mobile;
+- temas claro e escuro revisados visualmente em 390 × 844 pixels;
+- `npm audit --audit-level=moderate`: 0 vulnerabilidades;
+- o Lighthouse local sofreu tarefas longas atípicas e injeção conhecida do Kaspersky; os limites não foram reduzidos e a publicação exige aprovação no runner limpo do GitHub Actions.

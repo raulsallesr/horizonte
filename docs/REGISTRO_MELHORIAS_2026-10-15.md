@@ -53,6 +53,18 @@ Uma revisão integral do Horizonte encontrou boa arquitetura e apresentação, m
 - O formato v2 passa a ser usado nas novas gravações e URLs.
 - Metas extras com propriedades que nunca foram editáveis são convertidas para compra à vista sem manutenção.
 
+## Quarto ciclo — fases pós-trabalho
+
+| Tema | Decisão | Evidência |
+|---|---|---|
+| Contrato | Fases temporárias são adicionais à renda e à despesa permanentes | `docs/MODELO_FINANCEIRO.md` |
+| Intervalo | Início inclusivo e fim exclusivo, sempre dentro da fase pós-trabalho | `normalizarFluxoPosParar` |
+| Sobreposição | Fluxos simultâneos são somados, sem prioridade escondida | `src/engine/projecao.ts` |
+| Principal | Despesa temporária não autoriza vender ativos no modo renda passiva | `engine.test.ts` |
+| Transparência | Tabela e CSV mostram renda e despesa programadas separadamente | `Tabela.tsx` |
+| Compatibilidade | Schema 4 aceita links 1, 2 e 3; planos anteriores recebem lista vazia | `compartilhar.ts` |
+| Interface | Lista dinâmica fica no modo avançado, com vazio orientativo e anúncio acessível | `PainelPremissas.tsx` |
+
 ## Pendências conhecidas
 
 - O modelo permanece educacional e não representa dívidas ou financiamento.

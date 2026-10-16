@@ -32,6 +32,15 @@ O Dependabot já monitora mensalmente dependências npm e GitHub Actions.
 - diagnóstico, Monte Carlo, gráficos, tabela, CSV e links compartilháveis alinhados à estratégia;
 - migração conservadora de planos anteriores para o modo de retirada.
 
+## Entregue — v1.4.0 (fases pós-trabalho)
+
+- rendas e despesas mensais temporárias com idades de início e fim;
+- sobreposição aditiva de fases, sem prioridade oculta;
+- aposentadoria parcial por renda de trabalho com prazo após encerrar a atividade principal;
+- fluxos considerados na projeção, diagnóstico, recomendações e Monte Carlo;
+- auditoria das fases na tabela e no CSV;
+- schema 4 compatível com links e dados anteriores.
+
 ## Próxima etapa — governança e evolução do produto
 
 - ativar no painel do GitHub o ruleset documentado para a branch `main`;
@@ -41,8 +50,6 @@ O Dependabot já monitora mensalmente dependências npm e GitHub Actions.
 
 ## Evolução financeira
 
-- fases configuráveis de renda e despesas;
-- aposentadoria parcial e rendas com início e fim;
 - reserva de emergência separada;
 - custos e tributação mais detalhados;
 - retirada dinâmica na fase de aposentadoria;

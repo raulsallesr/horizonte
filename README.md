@@ -84,10 +84,11 @@ Instala o Chromium de teste uma vez, valida os fluxos em desktop/mobile e confer
 - **Três cenários lado a lado** (pessimista, base, otimista), cada um com a sua rentabilidade líquida.
 - **Duas estratégias pós-trabalho**: viver somente da renda passiva, sem vender ativos para completar despesas, ou combinar renda com retiradas graduais do patrimônio.
 - **Bola de neve explícita**: enquanto você trabalha, todos os rendimentos permanecem reinvestidos junto com os aportes.
+- **Fases após parar**: programe renda ou despesa por idade para representar trabalho parcial, INSS começando depois, aluguel temporário ou custos maiores por alguns anos.
 - **Número da liberdade**: quanto patrimônio precisa gerar a renda mensal desejada na estratégia escolhida — e a idade em que você chega lá.
 - **Inflação e valor real**: veja tudo em *R$ de hoje* ou em valores nominais (futuros).
 - **Quanto rende por mês (ou por ano)**: gráfico de aportes × rendimento, com o "ponto de virada" em que o dinheiro passa a trabalhar mais do que você.
-- **Fases da vida**: aumento real de salário, 13º, aporte em % do salário ou valor fixo, idade de parar de trabalhar e fase de renda ou retirada.
+- **Fases da vida**: aumento real de salário, 13º, aporte em % do salário ou valor fixo, idade de parar e fluxos temporários na fase pós-trabalho.
 - **Metas**: o barco (à vista ou com caixinha separada, com custo de manutenção) e outras metas pontuais. Mostra **quanto o barco adia a sua liberdade** e avisa quando não há saldo para realizar uma compra.
 - **Probabilidades (Monte Carlo)**: 5.000 futuros possíveis com a oscilação dos mercados → chance de ter a liberdade na idade desejada, de sustentar a estratégia escolhida e de cada meta ser realizada.
 - **Link compartilhável**: as premissas ficam no endereço da página; copie e mande a simulação para alguém.
@@ -107,11 +108,12 @@ Passo **mensal**; taxas anuais viram mensais por `(1 + a)^(1/12) − 1`.
 3. A rentabilidade é **nominal e líquida** (já descontados IR e custos).
 4. No modo **só renda passiva**, dividendos e juros são tratados como parte do retorno total, nunca somados novamente. Depois de parar, a despesa usa somente a renda distribuída; se ela não bastar, o déficit aparece e o principal não é vendido.
 5. No modo **renda + retiradas**, a despesa líquida pode consumir gradualmente o patrimônio, como nas versões anteriores.
-6. **Número da liberdade** = (despesa mensal − outra renda) × 12 ÷ taxa da estratégia. A idade da liberdade é o primeiro mês a partir do qual o patrimônio, em R$ de hoje, **permanece** acima desse número até o fim do horizonte — seguindo trabalhando e aportando para calcular essa data.
-7. **Rendimento em R$ de hoje** desconta a inflação: é o ganho acima da manutenção do poder de compra.
-8. Uma meta só é comprada se o patrimônio disponível cobrir o custo integral na idade planejada. Se faltar saldo, nenhuma dívida é criada: a meta é marcada como não realizada e o déficit fica visível.
-9. **Monte Carlo**: retornos mensais normais com a média e a volatilidade do cenário Base, semente fixa (resultado reproduzível), rodando em um Web Worker cancelável. Metas sem saldo não são compradas e têm sua própria probabilidade de realização.
-10. As buscas iterativas das recomendações também rodam em um Worker; a leitura essencial do plano permanece imediata.
+6. Depois de parar, fases temporárias de renda reduzem a necessidade do mês e fases de despesa a aumentam. Elas começam na idade inicial, deixam de valer na idade final e são somadas quando coincidem.
+7. **Número da liberdade** = (despesa mensal − outra renda permanente) × 12 ÷ taxa da estratégia. Fluxos temporários entram na projeção e no diagnóstico, mas não reduzem esse alvo permanente. A idade da liberdade é o primeiro mês a partir do qual o patrimônio, em R$ de hoje, **permanece** acima desse número até o fim do horizonte — seguindo trabalhando e aportando para calcular essa data.
+8. **Rendimento em R$ de hoje** desconta a inflação: é o ganho acima da manutenção do poder de compra.
+9. Uma meta só é comprada se o patrimônio disponível cobrir o custo integral na idade planejada. Se faltar saldo, nenhuma dívida é criada: a meta é marcada como não realizada e o déficit fica visível.
+10. **Monte Carlo**: retornos mensais normais com a média e a volatilidade do cenário Base, semente fixa (resultado reproduzível), rodando em um Web Worker cancelável. Metas sem saldo não são compradas e têm sua própria probabilidade de realização.
+11. As buscas iterativas das recomendações também rodam em um Worker; a leitura essencial do plano permanece imediata.
 
 O motor de cálculo fica em [`src/engine`](src/engine) (TypeScript puro, com testes em `engine.test.ts`).
 

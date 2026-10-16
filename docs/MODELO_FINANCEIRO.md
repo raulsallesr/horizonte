@@ -51,7 +51,23 @@ Não vender ativos não garante que o valor de mercado do patrimônio permaneça
 - Rendimentos e venda gradual de ativos não são separados contabilmente.
 - O patrimônio pode chegar a zero quando as retiradas superam o saldo disponível.
 
-Planos e links anteriores à versão 3 do schema continuam nesse modo para evitar mudança silenciosa de significado.
+Planos e links anteriores à versão 3 do schema continuam nesse modo para evitar mudança silenciosa de significado. Links das versões 1, 2 e 3 são aceitos pelo schema 4; os que não possuem fases recebem uma lista vazia.
+
+## Fases temporárias após parar
+
+Rendas e despesas com prazo são fluxos adicionais aplicados somente depois da idade de parar de trabalhar.
+
+- Cada fase tem tipo, nome, valor mensal em R$ de hoje e idades de início e fim.
+- A idade inicial é inclusiva; a idade final é exclusiva. Uma fase dos 55 aos 60 vale até o mês anterior aos 60 anos.
+- Rendas temporárias são somadas à outra renda permanente antes de calcular quanto falta para a despesa do mês.
+- Despesas temporárias são somadas à despesa-base.
+- Fases simultâneas são somadas; não há prioridade oculta entre elas.
+- Os valores acompanham a inflação, como as demais entradas expressas em R$ de hoje.
+- No modo só renda passiva, os fluxos alteram a parcela necessária e o eventual déficit, mas continuam sem autorizar venda do principal.
+- No modo renda mais retiradas, os fluxos alteram a retirada mensal do patrimônio.
+- Sem fases cadastradas, o resultado é idêntico ao contrato da versão 1.3.0.
+
+O número da liberdade permanece baseado na despesa e na outra renda **permanentes**. Fases com prazo entram na projeção, no diagnóstico, nas recomendações e no Monte Carlo, mas não reduzem esse alvo estrutural. A tabela e o CSV mostram os valores programados separadamente para auditoria.
 
 ## Metas
 
