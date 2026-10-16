@@ -65,6 +65,19 @@ Uma revisão integral do Horizonte encontrou boa arquitetura e apresentação, m
 | Compatibilidade | Schema 4 aceita links 1, 2 e 3; planos anteriores recebem lista vazia | `compartilhar.ts` |
 | Interface | Lista dinâmica fica no modo avançado, com vazio orientativo e anúncio acessível | `PainelPremissas.tsx` |
 
+## Quinto ciclo — reserva de emergência
+
+| Tema | Decisão | Evidência |
+|---|---|---|
+| Separação | Reserva não compõe patrimônio investido, renda passiva, retiradas, metas ou caixinhas | `src/engine/projecao.ts` |
+| Prioridade | Parcela mensal completa primeiro a reserva e devolve a sobra aos investimentos no mesmo mês | `engine.test.ts` |
+| Meta | Alvo usa meses da despesa permanente; fases planejadas não alteram a reserva | `docs/MODELO_FINANCEIRO.md` |
+| Retorno | Saldo acompanha apenas a inflação, equivalente a ganho real zero | `src/engine/projecao.ts` |
+| Transparência | KPI, tabela e CSV mostram saldo e aportes sem somá-los ao patrimônio | `Kpis.tsx`, `Tabela.tsx` |
+| Compatibilidade | Schema 5 aceita links 1 a 4; planos antigos recebem reserva desativada | `compartilhar.ts` |
+| Interface | Ativação progressiva, campos rotulados, ajuda contra dupla contagem e status textual da meta | `PainelPremissas.tsx` |
+| Validação | Motor, migração, acessibilidade e ausência de rolagem horizontal cobertos em desktop/mobile | `engine.test.ts`, `compartilhar.test.ts`, `e2e/horizonte.spec.ts` |
+
 ## Pendências conhecidas
 
 - O modelo permanece educacional e não representa dívidas ou financiamento.

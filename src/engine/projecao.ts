@@ -42,6 +42,8 @@ export function simular(
   const defl = new Float64Array(N + 1)
   const mk = () => (detalhe ? new Float64Array(N + 1) : new Float64Array(0))
   const aporte = mk()
+  const reservaEmergencia = mk()
+  const aporteReserva = mk()
   const rendimento = mk()
   const rendaPassiva = mk()
   const deficitRenda = mk()
@@ -57,12 +59,14 @@ export function simular(
   const metas: ResultadoMeta[] = []
 
   let invest = p.patrimonioInicial
+  let reserva = p.reservaEmergencia.ativa ? p.reservaEmergencia.saldoInicial : 0
   const caixinha = compras.map(() => 0)
   let esgotouK = -1
   let esgotouNaFaseDeSaqueK = -1
   let faltouRendaNaFasePosPararK = -1
   let f = 1
   pat[0] = invest
+  if (detalhe) reservaEmergencia[0] = reserva
   defl[0] = 1
 
   for (let k = 1; k <= N; k++) {
@@ -72,6 +76,10 @@ export function simular(
     const anoIdx = Math.floor((k - 1) / 12)
     const idadeNoInicioMes = p.idadeAtual + (k - 1) / 12
     const trabalhando = idadeNoInicioMes < p.idadeParar
+
+    // A reserva não busca ganho real: apenas acompanha a inflação e nunca se
+    // mistura ao patrimônio usado em metas, renda passiva ou retiradas.
+    if (p.reservaEmergencia.ativa) reserva *= fMes
 
     // O retorno total fica integralmente reinvestido enquanto a pessoa trabalha.
     // Depois, no modo renda passiva, apenas a parcela distribuída pode pagar despesas.
@@ -85,6 +93,7 @@ export function simular(
     }
 
     let ap = 0
+    let apReserva = 0
     let renda = 0
     let deficit = 0
     let rendaFase = 0
@@ -101,6 +110,16 @@ export function simular(
         p.aporteModo === 'percentual'
           ? (p.aportePercentual / 100) * rendaMes
           : p.aporteFixo * Math.pow(gApo, anoIdx) * f * multiplicadorDezembro
+
+      if (p.reservaEmergencia.ativa && ap > 0) {
+        const metaReserva = p.despesaMensal * p.reservaEmergencia.mesesDespesa * f
+        const faltaReserva = Math.max(0, metaReserva - reserva)
+        // O 13º aumenta o aporte disponível, mas não dobra a parcela mensal
+        // configurada para a reserva.
+        apReserva = Math.min(ap, p.reservaEmergencia.aporteMensal * f, faltaReserva)
+        reserva += apReserva
+        ap -= apReserva
+      }
     } else {
       for (const fluxo of p.fluxosPosParar) {
         if (idadeNoInicioMes < fluxo.idadeInicio || idadeNoInicioMes >= fluxo.idadeFim) continue
@@ -196,6 +215,8 @@ export function simular(
 
     if (detalhe) {
       aporte[k] = ap + sepTotal
+      reservaEmergencia[k] = reserva
+      aporteReserva[k] = apReserva
       rendimento[k] = rend
       rendaPassiva[k] = renda
       deficitRenda[k] = deficit
@@ -230,6 +251,8 @@ export function simular(
     pat,
     defl,
     aporte,
+    reservaEmergencia,
+    aporteReserva,
     rendimento,
     rendaPassiva,
     deficitRenda,
@@ -255,6 +278,7 @@ export function resumoAnual(p: Premissas, s: Serie): LinhaAnual[] {
     const ini = a * 12 + 1
     const fim = Math.min(s.meses, (a + 1) * 12)
     let ap = 0
+    let apReserva = 0
     let rd = 0
     let rdReal = 0
     let rp = 0
@@ -265,6 +289,7 @@ export function resumoAnual(p: Premissas, s: Serie): LinhaAnual[] {
     let cp = 0
     for (let k = ini; k <= fim; k++) {
       ap += s.aporte[k]
+      apReserva += s.aporteReserva[k]
       rd += s.rendimento[k]
       // rendimento real do mês = juros deflacionados + erosão do saldo anterior pela inflação
       rdReal += s.rendimento[k] / s.defl[k] + s.pat[k - 1] * (1 / s.defl[k] - 1 / s.defl[k - 1])
@@ -281,6 +306,8 @@ export function resumoAnual(p: Premissas, s: Serie): LinhaAnual[] {
       patNominal: s.pat[fim],
       patReal: s.pat[fim] / s.defl[fim],
       aporte: ap,
+      reservaEmergencia: s.reservaEmergencia[fim],
+      aporteReserva: apReserva,
       rendimento: rd,
       rendimentoReal: rdReal,
       rendaPassiva: rp,

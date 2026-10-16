@@ -40,6 +40,16 @@ export interface FluxoPosParar {
   idadeFim: number
 }
 
+export interface ReservaEmergencia {
+  ativa: boolean
+  /** Saldo separado do patrimônio investido, em R$ de hoje. */
+  saldoInicial: number
+  /** Meta expressa em meses da despesa mensal permanente. */
+  mesesDespesa: number
+  /** Parcela mensal do aporte destinada primeiro à reserva, em R$ de hoje. */
+  aporteMensal: number
+}
+
 export interface Premissas {
   nome: string
   /** Ano de referência (hoje) — só para rotular as projeções. */
@@ -59,6 +69,8 @@ export interface Premissas {
   aporteFixo: number
   /** Crescimento real do aporte fixo, % a.a. */
   aumentoRealAporte: number
+  /** Caixa protegida e separada dos investimentos de longo prazo. */
+  reservaEmergencia: ReservaEmergencia
   /** Inflação (IPCA), % a.a. */
   inflacao: number
   /** Despesa mensal desejada na liberdade, R$ de hoje. */
@@ -88,6 +100,10 @@ export interface Serie {
   defl: Float64Array
   /** Fluxos do mês k (índice 0 = 0). */
   aporte: Float64Array
+  /** Saldo nominal da reserva protegida ao fim do mês. */
+  reservaEmergencia: Float64Array
+  /** Parcela nominal do aporte do mês destinada à reserva. */
+  aporteReserva: Float64Array
   rendimento: Float64Array
   /** Renda distribuída disponível no mês; o excedente permanece reinvestido. */
   rendaPassiva: Float64Array
@@ -130,6 +146,10 @@ export interface LinhaAnual {
   patNominal: number
   patReal: number
   aporte: number
+  /** Saldo da reserva no fim do ano, em valor nominal. */
+  reservaEmergencia: number
+  /** Total destinado à reserva durante o ano, em valor nominal. */
+  aporteReserva: number
   rendimento: number
   /** Rendimento acima da inflação do ano, já em R$ de hoje (nominal menos a erosão do saldo). */
   rendimentoReal: number

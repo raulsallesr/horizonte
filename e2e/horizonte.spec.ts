@@ -35,6 +35,21 @@ test('distingue renda passiva sem venda da retirada do patrimônio', async ({ pa
   await expect(page.getByText(/venda gradual de ativos/)).toBeVisible()
 })
 
+test('separa e acompanha a reserva de emergência sem misturá-la ao patrimônio', async ({ page }) => {
+  await abrir(page)
+  const controle = page.getByRole('checkbox', { name: 'Separar a reserva do patrimônio investido' })
+  await expect(controle).not.toBeChecked()
+  await page.getByText('Separar a reserva do patrimônio investido', { exact: true }).click()
+  await expect(controle).toBeChecked()
+
+  await expect(page.getByText('Saldo da reserva hoje', { exact: true })).toBeVisible()
+  await expect(page.getByText('Meta protegida', { exact: true })).toBeVisible()
+  await expect(page.getByText(/não paga despesas planejadas/)).toBeVisible()
+  await expect(page.getByText(/Reserva aos 55/)).toBeVisible()
+  const dimensoes = await page.evaluate(() => ({ largura: innerWidth, conteudo: document.documentElement.scrollWidth }))
+  expect(dimensoes.conteudo).toBeLessThanOrEqual(dimensoes.largura)
+})
+
 test('configura uma fase temporária de renda ou despesa após parar', async ({ page }) => {
   await abrir(page)
   await page.getByRole('button', { name: 'Avançado' }).click()
@@ -75,7 +90,7 @@ test('salva e compara uma versão de referência', async ({ page }) => {
 test('carrega gráficos e tabela quando se aproximam da tela', async ({ page }) => {
   await abrir(page)
   await page.locator('.detalhes-sob-demanda').scrollIntoViewIfNeeded()
-  await expect(page.getByRole('heading', { name: 'Seu patrimônio ao longo da vida' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Seu patrimônio investido ao longo da vida' })).toBeVisible()
   await expect(page.getByText('Tabela ano a ano', { exact: true })).toBeVisible()
 })
 

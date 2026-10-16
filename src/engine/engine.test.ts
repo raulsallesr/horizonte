@@ -323,6 +323,81 @@ describe('projeção determinística', () => {
       expect(delta).toBeCloseTo(fluxo, 4)
     }
   })
+
+  it('mantém o resultado anterior quando a reserva está desativada', () => {
+    const p = limpa({ patrimonioInicial: 50_000, aporteModo: 'fixo', aporteFixo: 1_000 })
+    const alterado = {
+      ...p,
+      reservaEmergencia: { ativa: false, saldoInicial: 999_999, mesesDespesa: 24, aporteMensal: 9_999 },
+    }
+
+    expect(Array.from(projetar(alterado, 'base').pat)).toEqual(Array.from(projetar(p, 'base').pat))
+  })
+
+  it('prioriza a reserva e devolve o aporte aos investimentos quando a meta fica completa', () => {
+    const p = limpa({
+      patrimonioInicial: 0,
+      aporteModo: 'fixo',
+      aporteFixo: 1_000,
+      despesaMensal: 1_000,
+      idadeAtual: 30,
+      idadeParar: 31,
+      idadeFinal: 31,
+      reservaEmergencia: { ativa: true, saldoInicial: 0, mesesDespesa: 6, aporteMensal: 1_000 },
+    })
+    p.cenarios.base = { ...p.cenarios.base, rentAnual: 0, vol: 0 }
+    const s = projetar(p, 'base')
+
+    expect(s.reservaEmergencia[6]).toBe(6_000)
+    expect(s.aporteReserva[6]).toBe(1_000)
+    expect(s.pat[6]).toBe(0)
+    expect(s.aporteReserva[7]).toBe(0)
+    expect(s.aporte[7]).toBe(1_000)
+    expect(s.pat[12]).toBe(6_000)
+  })
+
+  it('não ultrapassa a meta da reserva e investe a sobra do aporte no mesmo mês', () => {
+    const p = limpa({
+      patrimonioInicial: 0,
+      aporteModo: 'fixo',
+      aporteFixo: 1_000,
+      despesaMensal: 1_000,
+      idadeAtual: 30,
+      idadeParar: 31,
+      idadeFinal: 31,
+      reservaEmergencia: { ativa: true, saldoInicial: 5_500, mesesDespesa: 6, aporteMensal: 1_000 },
+    })
+    p.cenarios.base = { ...p.cenarios.base, rentAnual: 0, vol: 0 }
+    const s = projetar(p, 'base')
+
+    expect(s.aporteReserva[1]).toBe(500)
+    expect(s.reservaEmergencia[1]).toBe(6_000)
+    expect(s.aporte[1]).toBe(500)
+  })
+
+  it('preserva o poder de compra da reserva e não a usa depois de parar', () => {
+    const p = limpa({
+      patrimonioInicial: 0,
+      aporteModo: 'fixo',
+      aporteFixo: 0,
+      inflacao: 12,
+      despesaMensal: 5_000,
+      idadeAtual: 60,
+      idadeParar: 60,
+      idadeFinal: 61,
+      reservaEmergencia: { ativa: true, saldoInicial: 30_000, mesesDespesa: 6, aporteMensal: 1_000 },
+    })
+    p.cenarios.base = { ...p.cenarios.base, rentAnual: 0, vol: 0 }
+    const s = projetar(p, 'base')
+    const [ano] = resumoAnual(p, s)
+
+    expect(s.pat[s.meses]).toBe(0)
+    expect(s.retirada[1]).toBeGreaterThan(0)
+    expect(s.aporteReserva[1]).toBe(0)
+    expect(s.reservaEmergencia[s.meses] / s.defl[s.meses]).toBeCloseTo(30_000, 6)
+    expect(ano.reservaEmergencia / ano.defl).toBeCloseTo(30_000, 6)
+    expect(ano.aporteReserva).toBe(0)
+  })
 })
 
 describe('metas', () => {

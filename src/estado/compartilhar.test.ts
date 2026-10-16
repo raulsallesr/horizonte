@@ -96,4 +96,32 @@ describe('normalização de estado compartilhado', () => {
     expect(lido.fluxosPosParar).toEqual([])
     expect(lido.estrategiaPosParar).toBe('renda_passiva')
   })
+
+  it('migra links v4 sem reserva sem alterar o patrimônio investido', () => {
+    const legado = { ...premissasPadrao(2026) } as Partial<ReturnType<typeof premissasPadrao>>
+    delete legado.reservaEmergencia
+    const bytes = new TextEncoder().encode(JSON.stringify({ versao: 4, premissas: legado }))
+    let binario = ''
+    bytes.forEach((byte) => (binario += String.fromCharCode(byte)))
+    const texto = btoa(binario).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+
+    const lido = lerPremissasCompartilhadas(texto)
+    expect(lido.reservaEmergencia).toMatchObject({ ativa: false, saldoInicial: 0, mesesDespesa: 6 })
+    expect(lido.patrimonioInicial).toBe(40_000)
+  })
+
+  it('saneia os limites da reserva de emergência', () => {
+    const p = premissasPadrao(2026)
+    const n = sanear({
+      ...p,
+      reservaEmergencia: { ativa: true, saldoInicial: -1, mesesDespesa: 99, aporteMensal: 1e12 },
+    })
+
+    expect(n.reservaEmergencia).toEqual({
+      ativa: true,
+      saldoInicial: 0,
+      mesesDespesa: 36,
+      aporteMensal: 1e7,
+    })
+  })
 })

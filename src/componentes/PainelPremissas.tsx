@@ -17,11 +17,18 @@ export function PainelPremissas({ p, set, modo, onModo }: Props) {
   const up = <K extends keyof Premissas>(k: K, v: Premissas[K]) => set((x) => ({ ...x, [k]: v }))
   const upBarco = (patch: Partial<Premissas['barco']>) =>
     set((x) => ({ ...x, barco: { ...x.barco, ...patch } }))
+  const upReserva = (patch: Partial<Premissas['reservaEmergencia']>) =>
+    set((x) => ({ ...x, reservaEmergencia: { ...x.reservaEmergencia, ...patch } }))
   const upExtra = (id: string, patch: Partial<Compra>) =>
     set((x) => ({ ...x, extras: x.extras.map((e) => (e.id === id ? { ...e, ...patch } : e)) }))
   const upFluxo = (id: string, patch: Partial<FluxoPosParar>) =>
     set((x) => ({ ...x, fluxosPosParar: x.fluxosPosParar.map((f) => (f.id === id ? { ...f, ...patch } : f)) }))
   const soRendaPassiva = p.estrategiaPosParar === 'renda_passiva'
+  const metaReserva = p.despesaMensal * p.reservaEmergencia.mesesDespesa
+  const faltaReserva = Math.max(0, metaReserva - p.reservaEmergencia.saldoInicial)
+  const progressoReserva = metaReserva > 0
+    ? Math.min(1, p.reservaEmergencia.saldoInicial / metaReserva)
+    : 1
 
   return (
     <aside id="premissas" className="painel" aria-label="Premissas da simulação">
@@ -98,6 +105,67 @@ export function PainelPremissas({ p, set, modo, onModo }: Props) {
           <>
             <Campo rotulo="Aporte mensal (R$ de hoje)" valor={p.aporteFixo} min={0} max={30000} passo={100} prefixo="R$" maxDigitavel={1e7} onChange={(v) => up('aporteFixo', v)} />
             {modo === 'avancado' && <Campo rotulo="Crescimento real do aporte" valor={p.aumentoRealAporte} min={0} max={8} passo={0.1} sufixo="% a.a." onChange={(v) => up('aumentoRealAporte', v)} />}
+          </>
+        )}
+      </Secao>
+
+      <Secao titulo="Reserva de emergência" icone="investimentos">
+        <Interruptor
+          rotulo="Separar a reserva do patrimônio investido"
+          valor={p.reservaEmergencia.ativa}
+          onChange={(v) => upReserva({ ativa: v })}
+        />
+        {p.reservaEmergencia.ativa && (
+          <>
+            <div className="estrategia-nota" role="note">
+              <Icone nome="investimentos" />
+              <p>
+                Esta reserva fica protegida e fora dos investimentos de longo prazo. Ela recebe prioridade no aporte,
+                acompanha apenas a inflação e não paga despesas planejadas, metas ou déficits após você parar.
+              </p>
+            </div>
+            <Campo
+              rotulo="Saldo da reserva hoje"
+              valor={p.reservaEmergencia.saldoInicial}
+              min={0}
+              max={300000}
+              passo={500}
+              prefixo="R$"
+              maxDigitavel={1e9}
+              ajuda="Não repita este valor no patrimônio investido acima."
+              onChange={(v) => upReserva({ saldoInicial: v })}
+            />
+            <Campo
+              rotulo="Meta em meses de despesa"
+              valor={p.reservaEmergencia.mesesDespesa}
+              min={1}
+              max={36}
+              passo={1}
+              sufixo="meses"
+              ajuda="Usa a despesa mensal permanente informada no plano."
+              onChange={(v) => upReserva({ mesesDespesa: v })}
+            />
+            <Campo
+              rotulo="Completar por mês"
+              valor={p.reservaEmergencia.aporteMensal}
+              min={0}
+              max={30000}
+              passo={100}
+              prefixo="R$"
+              maxDigitavel={1e7}
+              ajuda="Sai primeiro do aporte disponível. Ao completar a meta, o valor volta automaticamente aos investimentos."
+              onChange={(v) => upReserva({ aporteMensal: v })}
+            />
+            <div className="reserva-status" aria-live="polite">
+              <div>
+                <span>Meta protegida</span>
+                <strong>{fmtBRLCompacto(metaReserva)}</strong>
+              </div>
+              <div className="barra" role="progressbar" aria-label="Progresso da reserva de emergência" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progressoReserva * 100)}>
+                <span style={{ width: `${progressoReserva * 100}%` }} />
+              </div>
+              <p>{faltaReserva > 0 ? `Faltam ${fmtBRLCompacto(faltaReserva)} hoje.` : 'A meta já está completa hoje.'}</p>
+            </div>
           </>
         )}
       </Secao>

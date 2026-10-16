@@ -6,13 +6,14 @@ Este documento descreve o contrato do simulador. Alterações nessas regras deve
 
 Para cada mês:
 
-1. patrimônio e caixinhas recebem o retorno do mês;
-2. enquanto a pessoa trabalha, todo o retorno permanece reinvestido e entra o aporte;
-3. depois de parar, a estratégia escolhida define quanto pode sair do patrimônio;
-4. parte do aporte pode ser destinada à caixinha;
-5. metas previstas para o mês são avaliadas;
-6. custos de manutenção de metas já compradas são debitados;
-7. o saldo final do mês é armazenado.
+1. a reserva acompanha a inflação; patrimônio e caixinhas recebem o retorno do mês;
+2. enquanto a pessoa trabalha, todo o retorno permanece reinvestido e o aporte do mês é calculado;
+3. a reserva recebe primeiro sua parcela, limitada pelo aporte disponível e pelo valor que falta para a meta;
+4. depois de parar, a estratégia escolhida define quanto pode sair do patrimônio investido;
+5. parte do aporte restante pode ser destinada à caixinha;
+6. metas previstas para o mês são avaliadas;
+7. custos de manutenção de metas já compradas são debitados;
+8. os saldos finais do mês são armazenados separadamente.
 
 Rentabilidade e inflação anuais são convertidas para mensais por `(1 + taxa)^(1/12) - 1`. A taxa anual de renda distribuída é dividida por 12, pois representa o fluxo anual pago pelo patrimônio, e não uma rentabilidade adicional.
 
@@ -28,6 +29,23 @@ Rentabilidade e inflação anuais são convertidas para mensais por `(1 + taxa)^
 - No modo percentual, dezembro usa duas remunerações quando o 13º está ativo.
 - No modo fixo, dezembro também realiza um aporte adicional de mesmo valor.
 - Crescimento real do salário e do aporte fixo ocorre em degraus anuais.
+- O 13º aumenta o aporte total disponível em dezembro, mas não dobra a parcela mensal configurada para a reserva.
+
+## Reserva de emergência
+
+A reserva é opcional e possui saldo próprio. Ela não integra `patrimônioInicial`, o número da liberdade ou os recursos disponíveis para renda passiva, retiradas, caixinhas e compras.
+
+- A meta real é `despesa mensal permanente × meses de despesa`.
+- Fases temporárias não alteram a meta, porque representam eventos planejados e não emergências.
+- Enquanto a pessoa trabalha, a reserva tem prioridade sobre caixinhas e investimentos até completar a meta.
+- Se falta menos que a parcela mensal configurada, somente o valor necessário é reservado e a sobra é investida no mesmo mês.
+- Depois de completar a meta, todo o aporte volta automaticamente aos investimentos e caixinhas.
+- O saldo acompanha a inflação, equivalente a retorno real zero; o modelo não presume rentabilidade adicional.
+- Um saldo inicial acima da meta é preservado, sem transferência automática do excesso.
+- Depois da idade de parar, a reserva permanece protegida: não recebe novos aportes e não cobre despesas, déficit de renda passiva, metas ou retiradas.
+- Ao informar o saldo da reserva, a pessoa deve excluí-lo do campo de patrimônio investido para evitar dupla contagem.
+
+Com a função desativada, resultados de planos anteriores permanecem idênticos. A tabela e o CSV apresentam saldo e aportes da reserva em colunas separadas quando ela está ativa.
 
 ## Estratégia depois de parar
 
@@ -51,7 +69,7 @@ Não vender ativos não garante que o valor de mercado do patrimônio permaneça
 - Rendimentos e venda gradual de ativos não são separados contabilmente.
 - O patrimônio pode chegar a zero quando as retiradas superam o saldo disponível.
 
-Planos e links anteriores à versão 3 do schema continuam nesse modo para evitar mudança silenciosa de significado. Links das versões 1, 2 e 3 são aceitos pelo schema 4; os que não possuem fases recebem uma lista vazia.
+Planos e links anteriores à versão 3 do schema continuam nesse modo para evitar mudança silenciosa de significado. O schema 5 aceita links das versões 1 a 4; os que não possuem fases recebem uma lista vazia e os que não possuem reserva recebem a função desativada, preservando o patrimônio investido original.
 
 ## Fases temporárias após parar
 

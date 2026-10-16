@@ -477,6 +477,30 @@ label {
   margin-top: 1px;
   color: var(--c-base);
 }
+.reserva-status {
+  display: grid;
+  gap: 7px;
+  padding: 10px 12px;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  background: var(--surface2);
+}
+.reserva-status > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.reserva-status strong {
+  color: var(--texto);
+  font-size: 0.95rem;
+}
+.reserva-status p {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
 
 .cenario {
   border-left: 3px solid var(--borda);

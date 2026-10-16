@@ -11,6 +11,7 @@ Premissas do usuário
         │
         ├── normalização e saneamento
         │        ├── fases pós-trabalho com início e fim
+        │        ├── reserva protegida com limites próprios
         │        └── localStorage + hash compartilhável
         │
         ├── projeção determinística mensal
@@ -44,7 +45,7 @@ Hash de URL e `localStorage` nunca são aceitos diretamente. O estado passa por 
 
 Links novos usam um envelope versionado. Links antigos continuam compatíveis. Uma versão desconhecida ou um conteúdo inválido carrega o exemplo padrão e exibe um aviso; dados locais não substituem silenciosamente um link defeituoso.
 
-O schema 4 adiciona uma lista limitada e saneada de fases pós-trabalho. Cada item recebe id único, tipo canônico, valor finito e idades contidas entre a parada e o fim do horizonte. Links das versões 1, 2 e 3 continuam aceitos e são carregados sem fases.
+O schema 5 adiciona a reserva de emergência com ativação explícita, saldo, meses de despesa e aporte mensal limitados. Links das versões 1 a 4 continuam aceitos; planos sem esse bloco recebem uma reserva desativada, sem alterar o patrimônio original. O saneamento das fases introduzido no schema 4 permanece igual.
 
 ### Cálculo pesado
 

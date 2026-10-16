@@ -16,11 +16,13 @@ export function Tabela({ p, series, v }: Props) {
   const linhas = useMemo(() => resumoAnual(p, series[id]), [p, series, id])
   const soRendaPassiva = p.estrategiaPosParar === 'renda_passiva'
   const temFases = p.fluxosPosParar.length > 0
+  const temReserva = p.reservaEmergencia.ativa
   const f = (l: { defl: number }) => (v.real ? 1 / l.defl : 1)
   const rend = (l: { rendimento: number; rendimentoReal: number }) => (v.real ? l.rendimentoReal : l.rendimento)
 
   const exportar = () => {
-    const cabBase = ['Idade', 'Ano', 'Patrimônio', 'Aportes no ano']
+    const cabBase = ['Idade', 'Ano', 'Patrimônio investido', 'Aportes nos investimentos']
+    if (temReserva) cabBase.push('Reserva de emergência', 'Aportes na reserva')
     if (temFases) cabBase.push('Rendas programadas', 'Despesas programadas')
     cabBase.push('Rendimento no ano')
     const cab = soRendaPassiva
@@ -29,6 +31,7 @@ export function Tabela({ p, series, v }: Props) {
     const num = (n: number) => n.toFixed(2).replace('.', ',')
     const corpo = linhas.map((l) => {
       const base = [Math.round(l.idade), l.ano, num(v.real ? l.patReal : l.patNominal), num(l.aporte * f(l))]
+      if (temReserva) base.push(num(l.reservaEmergencia * f(l)), num(l.aporteReserva * f(l)))
       if (temFases) base.push(num(l.rendaProgramada * f(l)), num(l.despesaProgramada * f(l)))
       base.push(num(rend(l)))
       const posParar = soRendaPassiva
@@ -67,6 +70,7 @@ export function Tabela({ p, series, v }: Props) {
         {v.real ? 'Valores em R$ de hoje.' : 'Valores nominais (futuros).'}{' '}
         {soRendaPassiva && 'O déficit não coberto não é retirado do principal.'}
         {temFases && ' Rendas e despesas programadas mostram apenas as fases temporárias.'}
+        {temReserva && ' A reserva é exibida separadamente e não compõe o patrimônio investido.'}
       </p>
       <div className="tabela-rolagem">
         <table>
@@ -75,8 +79,14 @@ export function Tabela({ p, series, v }: Props) {
             <tr>
               <th>Idade</th>
               <th>Ano</th>
-              <th>Patrimônio</th>
-              <th>Aportes</th>
+              <th>Patrimônio investido</th>
+              <th>Aportes nos investimentos</th>
+              {temReserva && (
+                <>
+                  <th>Reserva de emergência</th>
+                  <th>Aportes na reserva</th>
+                </>
+              )}
               {temFases && (
                 <>
                   <th>Rendas programadas</th>
@@ -101,6 +111,12 @@ export function Tabela({ p, series, v }: Props) {
                 <td>{l.ano}</td>
                 <td>{fmtBRL(v.real ? l.patReal : l.patNominal)}</td>
                 <td>{fmtBRL(l.aporte * f(l))}</td>
+                {temReserva && (
+                  <>
+                    <td>{fmtBRL(l.reservaEmergencia * f(l))}</td>
+                    <td>{fmtBRL(l.aporteReserva * f(l))}</td>
+                  </>
+                )}
                 {temFases && (
                   <>
                     <td>{fmtBRL(l.rendaProgramada * f(l))}</td>

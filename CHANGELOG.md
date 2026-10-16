@@ -4,6 +4,21 @@ Todas as mudanças relevantes do projeto serão registradas neste arquivo.
 
 ## Não publicado
 
+## [1.5.0] — 2026-10-16
+
+### Adicionado
+
+- Reserva de emergência opcional, separada do patrimônio investido e com meta em meses da despesa permanente.
+- Saldo e aporte da reserva na tabela anual e no CSV, além de KPI próprio na idade de parar.
+- Testes de prioridade do aporte, limite da meta, preservação do poder de compra, isolamento após parar e migração de planos anteriores.
+
+### Alterado
+
+- Enquanto a pessoa trabalha, a parcela configurada completa primeiro a reserva; a sobra do mesmo mês segue para caixinhas e investimentos.
+- A reserva acompanha apenas a inflação, não financia metas ou despesas planejadas e não compõe a renda passiva.
+- Gráfico e indicadores passam a nomear explicitamente o patrimônio investido quando a reserva está ativa.
+- Schema dos links e do armazenamento local passa à versão 5, mantendo compatibilidade com as versões 1 a 4.
+
 ## [1.4.0] — 2026-10-16
 
 ### Adicionado

@@ -133,10 +133,10 @@ export function GraficoPatrimonio({ p, series, v, idadeLiberdadeBase }: PropsPat
   const iRef = Math.min(dados.length - 1, Math.round(p.idadeParar - p.idadeAtual) + 5)
   const topo = redondoCima(Math.max(dados[iRef].otimista, dados[iRef].meta * 1.5) * 1.25)
   const pontoParar = dados[Math.min(dados.length - 1, Math.max(0, Math.round(p.idadeParar - p.idadeAtual)))]
-  const resumo = `Patrimônio no cenário Base aos ${p.idadeParar} anos: ${fmtBRLCompacto(pontoParar.base)}. ${idadeLiberdadeBase === null ? 'A liberdade não é sustentada dentro do horizonte.' : `A liberdade passa a ser sustentada aos ${Math.round(idadeLiberdadeBase)} anos.`}`
+  const resumo = `Patrimônio investido no cenário Base aos ${p.idadeParar} anos: ${fmtBRLCompacto(pontoParar.base)}. ${p.reservaEmergencia.ativa ? 'A reserva de emergência é acompanhada separadamente. ' : ''}${idadeLiberdadeBase === null ? 'A liberdade não é sustentada dentro do horizonte.' : `A liberdade passa a ser sustentada aos ${Math.round(idadeLiberdadeBase)} anos.`}`
   return (
     <Cartao
-      titulo="Seu patrimônio ao longo da vida"
+      titulo="Seu patrimônio investido ao longo da vida"
       sub={`Três cenários de rentabilidade. A linha tracejada amarela é o número da liberdade${v.real ? '' : ' (corrigido pela inflação)'}.`}
       resumo={resumo}
     >

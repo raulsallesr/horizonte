@@ -41,6 +41,11 @@ export function Kpis({ p, series, libs, impactos, mc, mcIndisponivel, v }: Props
   const necessidade = Math.max(0, p.despesaMensal - p.outraRendaPosParar) * defParar * mult
   const unidade = v.periodo === 'mensal' ? '/mês' : '/ano'
   const soRendaPassiva = p.estrategiaPosParar === 'renda_passiva'
+  const kParar = Math.min(base.meses, Math.max(0, Math.round((p.idadeParar - p.idadeAtual) * 12)))
+  const reservaPararReal = p.reservaEmergencia.ativa
+    ? base.reservaEmergencia[kParar] / base.defl[kParar]
+    : 0
+  const metaReserva = p.despesaMensal * p.reservaEmergencia.mesesDespesa
 
   let subLib: ReactNode = `Não é atingida até os ${p.idadeFinal} anos neste cenário.`
   let tomLib = 'alerta'
@@ -88,6 +93,14 @@ export function Kpis({ p, series, libs, impactos, mc, mcIndisponivel, v }: Props
           : `aos ${p.idadeParar} anos, taxa de ${taxaRendaObjetivo(p).toLocaleString('pt-BR')}% a.a. · precisa cobrir ${fmtBRL(necessidade)}${unidade}`}
         tom={renda >= necessidade ? 'ok' : 'atencao'}
       />
+      {p.reservaEmergencia.ativa && (
+        <Kpi
+          rotulo={<><Icone nome="investimentos" /> Reserva aos {p.idadeParar}</>}
+          valor={fmtBRLCompacto(reservaPararReal)}
+          sub={`em R$ de hoje · meta protegida: ${fmtBRLCompacto(metaReserva)} · fora do patrimônio investido`}
+          tom={reservaPararReal + 0.01 >= metaReserva ? 'ok' : 'atencao'}
+        />
+      )}
       {p.barco.ativo && metaBarco?.status === 'sem_recursos' ? (
         <Kpi
           rotulo={<><Icone nome="barco" /> {p.barco.nome || 'Barco'}</>}

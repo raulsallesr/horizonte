@@ -38,8 +38,12 @@ Os testes automatizados cobrem:
 - diagnóstico de plano saudável e insuficiente;
 - cálculo de aporte mínimo e primeira idade viável;
 - alternativas de prazo e valor para meta sem recursos.
+- reserva desativada sem regressão nos resultados anteriores;
+- prioridade da reserva no aporte, conclusão sem ultrapassar a meta e investimento da sobra;
+- poder de compra preservado e reserva indisponível para despesas depois de parar;
+- saldo e aporte anual da reserva, saneamento de limites e migração de links v4.
 
-O Playwright complementa os testes puros com fluxos reais em desktop e mobile: carga responsiva, modos simples/avançado, seleção da estratégia pós-trabalho, criação de fase temporária, plano inviável, comparação, detalhes sob demanda, zoom, paisagem, movimento reduzido, axe WCAG A/AA e recarregamento offline.
+O Playwright complementa os testes puros com fluxos reais em desktop e mobile: carga responsiva, modos simples/avançado, seleção da estratégia pós-trabalho, ativação da reserva, criação de fase temporária, plano inviável, comparação, detalhes sob demanda, zoom, paisagem, movimento reduzido, axe WCAG A/AA e recarregamento offline.
 
 O Lighthouse exige performance ≥ 80, acessibilidade ≥ 95, boas práticas ≥ 90, SEO ≥ 90, FCP ≤ 2,5 s, LCP ≤ 3,2 s, TBT ≤ 350 ms, CLS ≤ 0,1 e transferência da aplicação ≤ 1 MB. Uma injeção local conhecida do Kaspersky é identificada e relatada, mas o limite de boas práticas continua obrigatório em ambientes limpos.
 
@@ -66,6 +70,8 @@ Antes de publicar uma mudança de interface:
 3. Reduzir o horizonte: todas as metas devem permanecer antes do último ano.
 4. Aporte fixo com 13º: dezembro deve ter o dobro do aporte.
 5. Patrimônio cruza a liberdade antes do barco e cai depois: a liberdade só pode começar após a recuperação definitiva.
+6. Reserva de R$ 5.500, meta de R$ 6.000 e aporte de R$ 1.000: reservar R$ 500 e investir os R$ 500 restantes no mesmo mês.
+7. Reserva completa ao parar: despesas e déficit de renda passiva não podem reduzir o saldo protegido.
 6. Meta incerta no Monte Carlo: probabilidade de compra e probabilidade de duração devem aparecer separadamente.
 7. Só renda passiva, com renda inferior à despesa: o déficit deve aparecer e o principal não pode ser usado para completá-lo.
 8. Só renda passiva, com renda superior à despesa: apenas a parte necessária deve sair e o excedente deve permanecer reinvestido.
@@ -128,3 +134,15 @@ Em 16/10/2026, antes da publicação:
 - o Lighthouse local sofreu tarefas longas atípicas e injeção conhecida do Kaspersky; os limites não foram reduzidos e a publicação exige aprovação no runner limpo do GitHub Actions.
 - GitHub Actions: pipeline `38918089806` aprovado, inclusive gates de Lighthouse, seguido de deploy no GitHub Pages;
 - release `v1.4.0`: workflow `38918426904` aprovado.
+
+## Evidências da v1.5.0 — 16/10/2026
+
+- `npm run lint`: aprovado;
+- `npm test`: 51 testes aprovados em 4 arquivos;
+- `npm run build`: aprovado com TypeScript 6 e Vite 8;
+- `npm run test:e2e`: 22 cenários aprovados — 11 em desktop e 11 em mobile;
+- axe: nenhuma violação WCAG A/AA detectável nas duas configurações;
+- reserva ativada e inspecionada visualmente em tema claro a 1440 × 1000 e tema escuro a 390 × 844 pixels;
+- `npm audit --audit-level=moderate`: 0 vulnerabilidades;
+- Lighthouse local: acessibilidade 100, SEO 100, LCP 2,98 s, CLS 0,03 e 93 KiB transferidos; performance 77, FCP 2,56 s e TBT 533 ms ficaram abaixo do gate local durante a interferência já conhecida do Kaspersky;
+- os limites não foram reduzidos: a publicação da v1.5.0 depende da aprovação integral no runner limpo do GitHub Actions.

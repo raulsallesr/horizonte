@@ -41,6 +41,16 @@ O Dependabot já monitora mensalmente dependências npm e GitHub Actions.
 - auditoria das fases na tabela e no CSV;
 - schema 4 compatível com links e dados anteriores.
 
+## Entregue — v1.5.0 (reserva de emergência)
+
+- saldo protegido separado do patrimônio investido e da renda passiva;
+- meta configurável em meses da despesa permanente;
+- prioridade mensal no aporte enquanto a pessoa trabalha, sem ultrapassar a meta;
+- correção somente pela inflação, sem ganho real presumido;
+- reserva indisponível para despesas planejadas, déficits, retiradas e metas;
+- KPI, tabela e CSV próprios para auditar saldo e aportes;
+- schema 5 compatível com links e dados das versões 1 a 4.
+
 ## Próxima etapa — governança e evolução do produto
 
 - ativar no painel do GitHub o ruleset documentado para a branch `main`;
@@ -50,7 +60,6 @@ O Dependabot já monitora mensalmente dependências npm e GitHub Actions.
 
 ## Evolução financeira
 
-- reserva de emergência separada;
 - custos e tributação mais detalhados;
 - retirada dinâmica na fase de aposentadoria;
 - regimes variáveis de inflação e retorno;

@@ -16,6 +16,12 @@ export function premissasPadrao(anoBase = new Date().getFullYear()): Premissas {
     aportePercentual: 30,
     aporteFixo: 2000,
     aumentoRealAporte: 0,
+    reservaEmergencia: {
+      ativa: false,
+      saldoInicial: 0,
+      mesesDespesa: 6,
+      aporteMensal: 500,
+    },
     inflacao: 4.5,
     despesaMensal: 5000,
     outraRendaPosParar: 0,

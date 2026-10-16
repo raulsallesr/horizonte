@@ -1,13 +1,14 @@
 import { novaCompra, novoFluxoPosParar, premissasPadrao } from '../engine/padrao'
 import type { Compra, FluxoPosParar, Premissas } from '../engine/types'
 
-const CHAVE_LS = 'horizonte:premissas:v4'
+const CHAVE_LS = 'horizonte:premissas:v5'
+const CHAVE_LS_ANTIGA_V4 = 'horizonte:premissas:v4'
 const CHAVE_LS_ANTIGA_V3 = 'horizonte:premissas:v3'
 const CHAVE_LS_ANTIGA_V2 = 'horizonte:premissas:v2'
 const CHAVE_LS_ANTIGA_V1 = 'horizonte:premissas:v1'
 const MAX_EXTRAS = 8
 const MAX_FLUXOS_POS_PARAR = 8
-const VERSAO_LINK = 4
+const VERSAO_LINK = 5
 
 // ---- codificação para o hash da URL (JSON -> UTF-8 -> base64url) ----
 
@@ -118,6 +119,12 @@ export function normalizar(p: Premissas): Premissas {
     aportePercentual: limitar(p.aportePercentual, 0, 70),
     aporteFixo: limitar(p.aporteFixo, 0, 1e7),
     aumentoRealAporte: limitar(p.aumentoRealAporte, 0, 8),
+    reservaEmergencia: {
+      ativa: p.reservaEmergencia.ativa,
+      saldoInicial: limitar(p.reservaEmergencia.saldoInicial, 0, 1e9),
+      mesesDespesa: Math.round(limitar(p.reservaEmergencia.mesesDespesa, 1, 36)),
+      aporteMensal: limitar(p.reservaEmergencia.aporteMensal, 0, 1e7),
+    },
     inflacao: limitar(p.inflacao, 0, 12),
     despesaMensal: limitar(p.despesaMensal, 1000, 1e7),
     outraRendaPosParar: limitar(p.outraRendaPosParar, 0, 1e7),
@@ -166,7 +173,7 @@ export function sanear(entrada: unknown): Premissas {
 
 function extrairPremissasDoLink(entrada: unknown): unknown {
   if (!ehObj(entrada) || !('versao' in entrada)) return entrada // compatibilidade com links v1
-  if ((entrada.versao !== 2 && entrada.versao !== 3 && entrada.versao !== VERSAO_LINK) || !('premissas' in entrada)) {
+  if ((entrada.versao !== 2 && entrada.versao !== 3 && entrada.versao !== 4 && entrada.versao !== VERSAO_LINK) || !('premissas' in entrada)) {
     throw new Error('versão de link incompatível')
   }
   return entrada.premissas
@@ -204,6 +211,7 @@ export function carregarInicial(): CargaInicial {
   try {
     const salvo =
       window.localStorage.getItem(CHAVE_LS) ??
+      window.localStorage.getItem(CHAVE_LS_ANTIGA_V4) ??
       window.localStorage.getItem(CHAVE_LS_ANTIGA_V3) ??
       window.localStorage.getItem(CHAVE_LS_ANTIGA_V2) ??
       window.localStorage.getItem(CHAVE_LS_ANTIGA_V1)
@@ -230,6 +238,7 @@ export function persistir(p: Premissas): void {
 export function limparPersistencia(): void {
   try {
     window.localStorage.removeItem(CHAVE_LS)
+    window.localStorage.removeItem(CHAVE_LS_ANTIGA_V4)
     window.localStorage.removeItem(CHAVE_LS_ANTIGA_V3)
     window.localStorage.removeItem(CHAVE_LS_ANTIGA_V2)
     window.localStorage.removeItem(CHAVE_LS_ANTIGA_V1)
