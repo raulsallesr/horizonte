@@ -84,6 +84,7 @@ export interface PontoFluxo {
   aporte: number
   rendimento: number
   retirada: number
+  deficitRenda: number
 }
 
 /** Fluxos anuais do cenário base; em visão mensal, média por mês. */
@@ -97,6 +98,7 @@ export function dadosFluxo(p: Premissas, s: Serie, v: Visao): PontoFluxo[] {
       aporte: l.aporte * f,
       rendimento: (v.real ? l.rendimentoReal : l.rendimento) / div,
       retirada: -l.retirada * f,
+      deficitRenda: -l.deficitRenda * f,
     }
   })
 }

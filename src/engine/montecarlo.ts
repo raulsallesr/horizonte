@@ -31,7 +31,7 @@ export interface ResultadoMonteCarlo {
   p90: number[]
   /** Fração (0..1) das trajetórias que já atingiram a liberdade até cada idade. */
   probLiberdade: number[]
-  /** Fração das trajetórias em que o patrimônio nunca zera até a idade final. */
+  /** Fração das trajetórias que sustentam a estratégia escolhida até a idade final. */
   probDura: number
   /** Fração que atinge a liberdade até `idadeParar`. */
   probLiberdadeAteParar: number
@@ -77,7 +77,10 @@ export function monteCarlo(
       retornos[k] = Math.max(-0.99, mu + sigma * normal(rand))
     }
     const s = simular(p, cenario, { retornos, detalhe: false, registrarMetas: true })
-    if (s.esgotouNaFaseDeSaqueK < 0) duram++
+    const sustentaPosParar =
+      s.esgotouNaFaseDeSaqueK < 0 &&
+      (p.estrategiaPosParar !== 'renda_passiva' || s.faltouRendaNaFasePosPararK < 0)
+    if (sustentaPosParar) duram++
     for (const meta of s.metas) {
       if (meta.status === 'realizada') {
         metasRealizadas.set(meta.id, (metasRealizadas.get(meta.id) ?? 0) + 1)

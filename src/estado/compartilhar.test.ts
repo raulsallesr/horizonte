@@ -46,4 +46,25 @@ describe('normalização de estado compartilhado', () => {
     expect(lerPremissasCompartilhadas(codificar(p)).nome).toBe('Teste compartilhado')
     expect(() => lerPremissasCompartilhadas('nao-e-base64')).toThrow()
   })
+
+  it('preserva links v2 na estratégia antiga de retirada', () => {
+    const legado = { ...premissasPadrao(2026) } as Partial<ReturnType<typeof premissasPadrao>>
+    delete legado.estrategiaPosParar
+    delete legado.taxaRendaPassiva
+    const bytes = new TextEncoder().encode(JSON.stringify({ versao: 2, premissas: legado }))
+    let binario = ''
+    bytes.forEach((byte) => (binario += String.fromCharCode(byte)))
+    const texto = btoa(binario).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+
+    const lido = lerPremissasCompartilhadas(texto)
+    expect(lido.estrategiaPosParar).toBe('retirada')
+    expect(lido.taxaRendaPassiva).toBe(4)
+  })
+
+  it('saneia estratégia e taxa de renda passiva vindas de fora', () => {
+    const p = premissasPadrao(2026)
+    const n = sanear({ ...p, estrategiaPosParar: 'invalida', taxaRendaPassiva: 99 })
+    expect(n.estrategiaPosParar).toBe('retirada')
+    expect(n.taxaRendaPassiva).toBe(15)
+  })
 })

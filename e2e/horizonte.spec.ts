@@ -21,6 +21,20 @@ test('alterna entre premissas simples e avançadas', async ({ page }) => {
   await expect(page.getByText('Planejar até', { exact: true })).toBeVisible()
 })
 
+test('distingue renda passiva sem venda da retirada do patrimônio', async ({ page }) => {
+  await abrir(page)
+  const rendaPassiva = page.getByRole('button', { name: 'Só renda passiva' })
+  await expect(rendaPassiva).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByText('Renda passiva líquida esperada', { exact: true })).toBeVisible()
+  await expect(page.getByText(/100% dos rendimentos é reinvestido/)).toBeVisible()
+  await expect(page.getByText(/o principal não é vendido/)).toBeVisible()
+
+  await page.getByRole('button', { name: 'Renda + retiradas' }).click()
+  await expect(page.getByRole('button', { name: 'Renda + retiradas' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByText('Taxa de retirada sustentável', { exact: true })).toBeVisible()
+  await expect(page.getByText(/venda gradual de ativos/)).toBeVisible()
+})
+
 test('recalcula diagnóstico e oferece ações para um plano inviável', async ({ page }) => {
   await abrir(page)
   const grupo = page.locator('.campo').filter({ has: page.getByText('Parar de trabalhar aos', { exact: true }) })

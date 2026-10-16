@@ -1,4 +1,4 @@
-import { idadeLiberdade, numeroLiberdade, patrimonioNaIdade, resultadoMeta } from './metas'
+import { idadeLiberdade, numeroLiberdade, patrimonioNaIdade, rendaDoPatrimonioReal, resultadoMeta } from './metas'
 import { projetar } from './projecao'
 import type { Compra, Premissas, ResultadoMeta } from './types'
 
@@ -51,6 +51,7 @@ function serieAtendePlano(p: Premissas, serie = projetar(p, 'base')): boolean {
   return (
     patrimonioAoParar + TOLERANCIA >= numeroLiberdade(p) &&
     serie.esgotouNaFaseDeSaqueK < 0 &&
+    (p.estrategiaPosParar !== 'renda_passiva' || serie.faltouRendaNaFasePosPararK < 0) &&
     metasRealizadas
   )
 }
@@ -154,7 +155,9 @@ export function alternativasParaMeta(p: Premissas, meta: ResultadoMeta): Alterna
 /** Leitura imediata do plano, sem as buscas iterativas usadas nas recomendações. */
 export function diagnosticoBasico(p: Premissas, serieBase = projetar(p, 'base')): DiagnosticoPlano {
   const liberdadeNoPrazo = patrimonioNaIdade(p, serieBase, p.idadeParar, true) + TOLERANCIA >= numeroLiberdade(p)
-  const duraAteOHorizonte = serieBase.esgotouNaFaseDeSaqueK < 0
+  const duraAteOHorizonte =
+    serieBase.esgotouNaFaseDeSaqueK < 0 &&
+    (p.estrategiaPosParar !== 'renda_passiva' || serieBase.faltouRendaNaFasePosPararK < 0)
   const metasPendentes = serieBase.metas.filter((meta) => meta.status !== 'realizada')
   const quantidadeFalhas = Number(!liberdadeNoPrazo) + Number(!duraAteOHorizonte) + metasPendentes.length
   const nivel = quantidadeFalhas === 0 ? 'saudavel' : duraAteOHorizonte ? 'atencao' : 'critico'
@@ -189,9 +192,11 @@ export function resumirPlano(p: Premissas, serie = projetar(p, 'base')): ResumoP
   return {
     idadeLiberdade: idadeLiberdade(p, 'base'),
     patrimonioAoParar,
-    rendaSustentavel: (patrimonioAoParar * (p.taxaRetirada / 100)) / 12,
+    rendaSustentavel: rendaDoPatrimonioReal(p, serie, p.idadeParar),
     metasRealizadas,
     totalMetas: serie.metas.length,
-    duraAteOHorizonte: serie.esgotouNaFaseDeSaqueK < 0,
+    duraAteOHorizonte:
+      serie.esgotouNaFaseDeSaqueK < 0 &&
+      (p.estrategiaPosParar !== 'renda_passiva' || serie.faltouRendaNaFasePosPararK < 0),
   }
 }

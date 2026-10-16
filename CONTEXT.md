@@ -2,8 +2,9 @@
 
 Este arquivo é o ponto de retomada entre sessões. Leia-o antes de iniciar uma nova frente e atualize-o ao concluir qualquer lote material de trabalho.
 
-**Última atualização:** 15/10/2026  
-**Estado publicado:** `v1.2.0`  
+- **Última atualização:** 16/10/2026
+- **Estado publicado:** `v1.2.0`
+- **Próxima entrega validada localmente:** `v1.3.0` (renda passiva)
 **Commit da release:** `4930ee6` (`docs: preparar governanca e release v1.2.0`)
 
 ## Estado atual
@@ -23,6 +24,18 @@ Este arquivo é o ponto de retomada entre sessões. Leia-o antes de iniciar uma 
 - orçamentos Lighthouse e detecção explícita da interferência local do Kaspersky;
 - pipeline de lint, testes, build, E2E, Lighthouse, artefatos e deploy no GitHub Pages;
 - workflow de release por tag, `CODEOWNERS`, política de segurança e documentação de governança.
+
+## O que está pronto para a v1.3.0
+
+- novo padrão “só renda passiva”: todos os retornos são reinvestidos enquanto a pessoa trabalha;
+- depois de parar, despesas usam apenas a renda distribuída e nunca vendem o principal para cobrir faltas;
+- modo anterior “renda + retiradas” continua disponível;
+- taxa de renda passiva é parte do retorno total, sem dupla contagem;
+- excedente de renda permanece reinvestido e déficit não coberto aparece separadamente;
+- diagnóstico, Monte Carlo, gráfico, tabela, CSV, comparação e link compartilhável respeitam a estratégia;
+- links e dados anteriores migram para o modo de retirada, preservando a semântica original.
+
+Validação local em 16/10/2026: lint, 40 testes unitários, build e 18 cenários Playwright aprovados; axe não encontrou violações WCAG A/AA em desktop ou mobile; Lighthouse marcou performance 91, acessibilidade 100 e SEO 100; `npm audit` encontrou 0 vulnerabilidades.
 
 ## Evidências da validação
 
@@ -48,13 +61,17 @@ Os critérios completos e os casos manuais estão em [docs/VALIDACAO.md](docs/VA
 - qualquer evolução financeira começa por contrato, exemplo e teste automatizado;
 - uma melhoria só é considerada concluída com documentação, teste proporcional ao risco e workflow verde;
 - não reduzir gates por causa da injeção local do Kaspersky; usar a execução limpa da CI como referência.
+- no modo renda passiva, nunca cobrir déficit de despesas com venda silenciosa do principal;
+- renda passiva distribuída compõe o retorno total do cenário e não pode ser somada novamente;
+- durante a fase de trabalho, rendimentos e aportes permanecem integralmente reinvestidos.
 
 ## Pendências e próxima ordem de trabalho
 
-1. Ativar manualmente o ruleset da branch `main` conforme [docs/GITHUB.md](docs/GITHUB.md): bloquear exclusão e `force push`, exigir o check `build` e a resolução de conversas.
-2. Observar a estabilidade dos gates nas próximas execuções reais da CI.
-3. Validar instalação e retomada offline da PWA em aparelhos físicos.
-4. Escolher a próxima evolução financeira do [roadmap](docs/ROADMAP.md) e documentar seu contrato antes de implementar.
+1. Publicar e confirmar a `v1.3.0` no GitHub Actions e no site público.
+2. Ativar manualmente o ruleset da branch `main` conforme [docs/GITHUB.md](docs/GITHUB.md): bloquear exclusão e `force push`, exigir o check `build` e a resolução de conversas.
+3. Observar a estabilidade dos gates nas próximas execuções reais da CI.
+4. Validar instalação e retomada offline da PWA em aparelhos físicos.
+5. Escolher a próxima evolução financeira do [roadmap](docs/ROADMAP.md) e documentar seu contrato antes de implementar.
 
 A ativação do ruleset é administrativa e não pode ser inferida apenas pelo conteúdo do repositório. Confirme o estado ao vivo no GitHub antes de marcá-la como concluída.
 

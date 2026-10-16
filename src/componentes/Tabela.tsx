@@ -14,15 +14,22 @@ interface Props {
 export function Tabela({ p, series, v }: Props) {
   const [id, setId] = useState<IdCenario>('base')
   const linhas = useMemo(() => resumoAnual(p, series[id]), [p, series, id])
+  const soRendaPassiva = p.estrategiaPosParar === 'renda_passiva'
   const f = (l: { defl: number }) => (v.real ? 1 / l.defl : 1)
   const rend = (l: { rendimento: number; rendimentoReal: number }) => (v.real ? l.rendimentoReal : l.rendimento)
 
   const exportar = () => {
-    const cab = ['Idade', 'Ano', 'Patrimônio', 'Aportes no ano', 'Rendimento no ano', 'Retiradas no ano', 'Compras e manutenção']
+    const cab = soRendaPassiva
+      ? ['Idade', 'Ano', 'Patrimônio', 'Aportes no ano', 'Rendimento no ano', 'Renda passiva gerada', 'Renda passiva usada', 'Déficit não coberto', 'Compras e manutenção']
+      : ['Idade', 'Ano', 'Patrimônio', 'Aportes no ano', 'Rendimento no ano', 'Retiradas no ano', 'Compras e manutenção']
     const num = (n: number) => n.toFixed(2).replace('.', ',')
-    const corpo = linhas.map((l) =>
-      [Math.round(l.idade), l.ano, num(v.real ? l.patReal : l.patNominal), num(l.aporte * f(l)), num(rend(l)), num(l.retirada * f(l)), num(l.compra * f(l))].join(';'),
-    )
+    const corpo = linhas.map((l) => {
+      const base = [Math.round(l.idade), l.ano, num(v.real ? l.patReal : l.patNominal), num(l.aporte * f(l)), num(rend(l))]
+      const posParar = soRendaPassiva
+        ? [num(l.rendaPassiva * f(l)), num(l.retirada * f(l)), num(l.deficitRenda * f(l))]
+        : [num(l.retirada * f(l))]
+      return [...base, ...posParar, num(l.compra * f(l))].join(';')
+    })
     const csv = '﻿' + [cab.join(';'), ...corpo].join('\r\n')
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
     const a = document.createElement('a')
@@ -50,7 +57,10 @@ export function Tabela({ p, series, v }: Props) {
           Baixar CSV
         </button>
       </div>
-      <p className="ajuda">{v.real ? 'Valores em R$ de hoje.' : 'Valores nominais (futuros).'}</p>
+      <p className="ajuda">
+        {v.real ? 'Valores em R$ de hoje.' : 'Valores nominais (futuros).'}{' '}
+        {soRendaPassiva && 'O déficit não coberto não é retirado do principal.'}
+      </p>
       <div className="tabela-rolagem">
         <table>
           <caption className="sr-only">Projeção financeira ano a ano do cenário selecionado</caption>
@@ -61,7 +71,13 @@ export function Tabela({ p, series, v }: Props) {
               <th>Patrimônio</th>
               <th>Aportes</th>
               <th>Rendimento</th>
-              <th>Retiradas</th>
+              {soRendaPassiva ? (
+                <>
+                  <th>Renda passiva gerada</th>
+                  <th>Renda passiva usada</th>
+                  <th>Déficit não coberto</th>
+                </>
+              ) : <th>Retiradas</th>}
               <th>Compras e manutenção</th>
             </tr>
           </thead>
@@ -73,7 +89,13 @@ export function Tabela({ p, series, v }: Props) {
                 <td>{fmtBRL(v.real ? l.patReal : l.patNominal)}</td>
                 <td>{fmtBRL(l.aporte * f(l))}</td>
                 <td>{fmtBRL(rend(l))}</td>
-                <td>{fmtBRL(l.retirada * f(l))}</td>
+                {soRendaPassiva ? (
+                  <>
+                    <td>{fmtBRL(l.rendaPassiva * f(l))}</td>
+                    <td>{fmtBRL(l.retirada * f(l))}</td>
+                    <td>{fmtBRL(l.deficitRenda * f(l))}</td>
+                  </>
+                ) : <td>{fmtBRL(l.retirada * f(l))}</td>}
                 <td>{fmtBRL(l.compra * f(l))}</td>
               </tr>
             ))}

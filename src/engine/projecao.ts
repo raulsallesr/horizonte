@@ -33,6 +33,7 @@ export function simular(
   const registrarMetas = opts.registrarMetas ?? detalhe
   const compras = opts.compras ?? comprasAtivas(p)
   const rmFixo = taxaMensal(cenario.rentAnual)
+  const rmRendaPassiva = p.taxaRendaPassiva / 100 / 12
   const gSal = 1 + p.aumentoRealSalario / 100
   const gApo = 1 + p.aumentoRealAporte / 100
   const fMes = Math.pow(1 + p.inflacao / 100, 1 / 12)
@@ -42,6 +43,8 @@ export function simular(
   const mk = () => (detalhe ? new Float64Array(N + 1) : new Float64Array(0))
   const aporte = mk()
   const rendimento = mk()
+  const rendaPassiva = mk()
+  const deficitRenda = mk()
   const retirada = mk()
   const compra = mk()
 
@@ -55,6 +58,7 @@ export function simular(
   const caixinha = compras.map(() => 0)
   let esgotouK = -1
   let esgotouNaFaseDeSaqueK = -1
+  let faltouRendaNaFasePosPararK = -1
   let f = 1
   pat[0] = invest
   defl[0] = 1
@@ -66,8 +70,10 @@ export function simular(
     const anoIdx = Math.floor((k - 1) / 12)
     const trabalhando = p.idadeAtual + (k - 1) / 12 < p.idadeParar
 
-    // rendimento do mês sobre o saldo do início do mês
-    let rend = invest * rm
+    // O retorno total fica integralmente reinvestido enquanto a pessoa trabalha.
+    // Depois, no modo renda passiva, apenas a parcela distribuída pode pagar despesas.
+    const investInicio = invest
+    let rend = investInicio * rm
     invest += rend
     for (let i = 0; i < caixinha.length; i++) {
       const r = caixinha[i] * rm
@@ -76,6 +82,8 @@ export function simular(
     }
 
     let ap = 0
+    let renda = 0
+    let deficit = 0
     let ret = 0
     let cmp = 0
     let sepTotal = 0
@@ -89,7 +97,17 @@ export function simular(
           ? (p.aportePercentual / 100) * rendaMes
           : p.aporteFixo * Math.pow(gApo, anoIdx) * f * multiplicadorDezembro
     } else {
-      ret = Math.max(0, (p.despesaMensal - p.outraRendaPosParar) * f)
+      const necessidade = Math.max(0, (p.despesaMensal - p.outraRendaPosParar) * f)
+      if (p.estrategiaPosParar === 'renda_passiva') {
+        // O retorno do cenário já inclui dividendos/juros. A renda distribuída
+        // é somente a parte que pode sair em dinheiro, nunca um retorno adicional.
+        renda = Math.min(Math.max(0, invest), Math.max(0, investInicio * rmRendaPassiva))
+        ret = Math.min(necessidade, renda)
+        deficit = Math.max(0, necessidade - ret)
+        if (deficit > 0.01 && faltouRendaNaFasePosPararK < 0) faltouRendaNaFasePosPararK = k
+      } else {
+        ret = necessidade
+      }
     }
 
     // caixinha: separa parte do aporte para a compra, até o mês da compra
@@ -166,6 +184,8 @@ export function simular(
     if (detalhe) {
       aporte[k] = ap + sepTotal
       rendimento[k] = rend
+      rendaPassiva[k] = renda
+      deficitRenda[k] = deficit
       retirada[k] = ret
       compra[k] = cmp
     }
@@ -196,10 +216,13 @@ export function simular(
     defl,
     aporte,
     rendimento,
+    rendaPassiva,
+    deficitRenda,
     retirada,
     compra,
     esgotouK,
     esgotouNaFaseDeSaqueK,
+    faltouRendaNaFasePosPararK,
     metas,
   }
 }
@@ -217,6 +240,8 @@ export function resumoAnual(p: Premissas, s: Serie): LinhaAnual[] {
     let ap = 0
     let rd = 0
     let rdReal = 0
+    let rp = 0
+    let dr = 0
     let rt = 0
     let cp = 0
     for (let k = ini; k <= fim; k++) {
@@ -224,6 +249,8 @@ export function resumoAnual(p: Premissas, s: Serie): LinhaAnual[] {
       rd += s.rendimento[k]
       // rendimento real do mês = juros deflacionados + erosão do saldo anterior pela inflação
       rdReal += s.rendimento[k] / s.defl[k] + s.pat[k - 1] * (1 / s.defl[k] - 1 / s.defl[k - 1])
+      rp += s.rendaPassiva[k]
+      dr += s.deficitRenda[k]
       rt += s.retirada[k]
       cp += s.compra[k]
     }
@@ -235,6 +262,8 @@ export function resumoAnual(p: Premissas, s: Serie): LinhaAnual[] {
       aporte: ap,
       rendimento: rd,
       rendimentoReal: rdReal,
+      rendaPassiva: rp,
+      deficitRenda: dr,
       retirada: rt,
       compra: cp,
       defl: s.defl[fim],

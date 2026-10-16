@@ -19,6 +19,8 @@ export function premissasPadrao(anoBase = new Date().getFullYear()): Premissas {
     inflacao: 4.5,
     despesaMensal: 5000,
     outraRendaPosParar: 0,
+    estrategiaPosParar: 'renda_passiva',
+    taxaRendaPassiva: 4,
     taxaRetirada: 4,
     cenarios: {
       pessimista: { id: 'pessimista', nome: 'Pessimista', rentAnual: 9, vol: 7 },

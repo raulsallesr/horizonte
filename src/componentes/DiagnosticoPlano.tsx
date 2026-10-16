@@ -43,7 +43,7 @@ function Comparacao({ atual, referencia }: { atual: ResumoPlano; referencia: Res
         <strong role="cell">{fmtBRLCompacto(atual.patrimonioAoParar)}</strong>
       </div>
       <div className="comparacao-linha" role="row">
-        <span role="rowheader">Renda sustentável</span>
+        <span role="rowheader">Renda mensal do patrimônio</span>
         <strong role="cell">{fmtBRL(referencia.rendaSustentavel)}/mês</strong>
         <strong role="cell">{fmtBRL(atual.rendaSustentavel)}/mês</strong>
       </div>
@@ -80,6 +80,7 @@ export function DiagnosticoPlano({
     diagnostico.despesaSustentavelHoje !== null &&
     diagnostico.despesaSustentavelHoje < p.despesaMensal - 49
   const temAcoes = aporteMaior || idadePosterior || despesaMenor || diagnostico.metasPendentes.length > 0
+  const soRendaPassiva = p.estrategiaPosParar === 'renda_passiva'
 
   const aplicarMeta = (id: string, patch: { idade?: number; valor?: number }) =>
     set((atual) => id === atual.barco.id
@@ -110,11 +111,17 @@ export function DiagnosticoPlano({
       <ul className="checklist-plano">
         <li className={diagnostico.liberdadeNoPrazo ? 'ok' : 'falha'}>
           <Icone nome={diagnostico.liberdadeNoPrazo ? 'check' : 'alerta'} />
-          Patrimônio aos {p.idadeParar} anos {diagnostico.liberdadeNoPrazo ? 'cobre' : 'não cobre'} o número da liberdade.
+          {soRendaPassiva
+            ? `A renda passiva aos ${p.idadeParar} anos ${diagnostico.liberdadeNoPrazo ? 'cobre' : 'não cobre'} a despesa líquida sem vender ativos.`
+            : `O patrimônio aos ${p.idadeParar} anos ${diagnostico.liberdadeNoPrazo ? 'cobre' : 'não cobre'} o número da liberdade.`}
         </li>
         <li className={diagnostico.duraAteOHorizonte ? 'ok' : 'falha'}>
           <Icone nome={diagnostico.duraAteOHorizonte ? 'check' : 'alerta'} />
-          O patrimônio {diagnostico.duraAteOHorizonte ? 'não zera' : 'zera'} na fase de saque até os {p.idadeFinal} anos.
+          {soRendaPassiva
+            ? diagnostico.duraAteOHorizonte
+              ? `A renda cobre as despesas até os ${p.idadeFinal} anos sem usar o principal.`
+              : `A renda fica abaixo das despesas em pelo menos um mês até os ${p.idadeFinal} anos; o déficit aparece, mas o principal não é vendido.`
+            : `O patrimônio ${diagnostico.duraAteOHorizonte ? 'não zera' : 'zera'} na fase de retirada até os ${p.idadeFinal} anos.`}
         </li>
         <li className={diagnostico.metasPendentes.length === 0 ? 'ok' : 'falha'}>
           <Icone nome={diagnostico.metasPendentes.length === 0 ? 'check' : 'alerta'} />
@@ -125,7 +132,9 @@ export function DiagnosticoPlano({
         {mc && (
           <li className={mc.probDura >= 0.8 ? 'ok' : 'falha'}>
             <Icone nome={mc.probDura >= 0.8 ? 'check' : 'alerta'} />
-            Em 5.000 trajetórias, a chance de o patrimônio durar foi {(mc.probDura * 100).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%.
+            {soRendaPassiva
+              ? `Em 5.000 trajetórias, a chance de viver só da renda foi ${(mc.probDura * 100).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%.`
+              : `Em 5.000 trajetórias, a chance de o patrimônio durar foi ${(mc.probDura * 100).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%.`}
           </li>
         )}
       </ul>
@@ -157,7 +166,9 @@ export function DiagnosticoPlano({
               <article className="recomendacao">
                 <span className="recomendacao-tipo">Prazo</span>
                 <strong>Parar aos {diagnostico.idadeViavel} anos</strong>
-                <p>Primeira idade inteira em que patrimônio, saques e metas fecham no cenário Base.</p>
+                <p>{soRendaPassiva
+                  ? 'Primeira idade inteira em que a renda passiva cobre as despesas e as metas fecham no cenário Base.'
+                  : 'Primeira idade inteira em que patrimônio, retiradas e metas fecham no cenário Base.'}</p>
                 <button className="btn" type="button" onClick={() => set((atual) => ({ ...atual, idadeParar: diagnostico.idadeViavel! }))}>
                   Usar esta idade
                 </button>

@@ -4,6 +4,27 @@ Todas as mudanças relevantes do projeto serão registradas neste arquivo.
 
 ## Não publicado
 
+## [1.3.0] — 2026-10-16
+
+### Adicionado
+
+- Estratégias explícitas para viver somente da renda passiva ou combinar renda com retiradas do patrimônio.
+- Taxa própria de renda passiva líquida, tratada como parte do retorno total para impedir dupla contagem.
+- Registro mensal e anual da renda distribuída, da parcela utilizada e do déficit não coberto.
+- Testes do reinvestimento integral, preservação do principal, reinvestimento do excedente e migração de planos antigos.
+
+### Alterado
+
+- Novas simulações usam por padrão a estratégia de renda passiva sem venda de ativos para completar despesas.
+- Durante a fase de trabalho, todos os rendimentos permanecem explicitamente reinvestidos.
+- Diagnóstico, recomendações, Monte Carlo, KPIs, gráfico de fluxos, tabela e CSV passam a respeitar a estratégia escolhida.
+- Schema dos links e do armazenamento local passa à versão 3; dados anteriores continuam no modo de retirada para preservar seu significado.
+
+### Corrigido
+
+- O indicador antes chamado “Renda passiva sustentável” deixa de apresentar uma taxa de retirada como se fosse dividendos ou juros efetivamente distribuídos.
+- Falta de renda passiva não reduz mais o principal silenciosamente: o déficit fica visível e separado do patrimônio.
+
 ## [1.2.0] — 2026-10-15
 
 ### Adicionado

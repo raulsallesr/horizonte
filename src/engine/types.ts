@@ -1,4 +1,5 @@
 export type IdCenario = 'pessimista' | 'base' | 'otimista'
+export type EstrategiaPosParar = 'renda_passiva' | 'retirada'
 
 export interface Cenario {
   id: IdCenario
@@ -51,6 +52,10 @@ export interface Premissas {
   despesaMensal: number
   /** Outra renda mensal após parar de trabalhar (INSS, aluguel...), R$ de hoje. */
   outraRendaPosParar: number
+  /** Como as despesas serão pagas depois de parar de trabalhar. */
+  estrategiaPosParar: EstrategiaPosParar
+  /** Parcela anual líquida do retorno total distribuída como renda, % a.a. */
+  taxaRendaPassiva: number
   /** Taxa de retirada segura, % a.a. do patrimônio (real). */
   taxaRetirada: number
   cenarios: Record<IdCenario, Cenario>
@@ -69,12 +74,18 @@ export interface Serie {
   /** Fluxos do mês k (índice 0 = 0). */
   aporte: Float64Array
   rendimento: Float64Array
+  /** Renda distribuída disponível no mês; o excedente permanece reinvestido. */
+  rendaPassiva: Float64Array
+  /** Parte da despesa que a renda distribuída não cobriu; não é debitada do principal. */
+  deficitRenda: Float64Array
   retirada: Float64Array
   compra: Float64Array
   /** Índice do mês em que o patrimônio zerou, ou -1. */
   esgotouK: number
   /** Primeiro mês de esgotamento depois de parar de trabalhar, ou -1. */
   esgotouNaFaseDeSaqueK: number
+  /** Primeiro mês em que faltou renda passiva depois de parar, ou -1. */
+  faltouRendaNaFasePosPararK: number
   /** Resultado das metas no mês planejado. Vazio no caminho rápido, salvo se solicitado. */
   metas: ResultadoMeta[]
 }
@@ -103,6 +114,8 @@ export interface LinhaAnual {
   rendimento: number
   /** Rendimento acima da inflação do ano, já em R$ de hoje (nominal menos a erosão do saldo). */
   rendimentoReal: number
+  rendaPassiva: number
+  deficitRenda: number
   retirada: number
   compra: number
   /** Deflator no fim do ano. */

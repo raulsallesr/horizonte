@@ -1,10 +1,11 @@
 import { novaCompra, premissasPadrao } from '../engine/padrao'
 import type { Compra, Premissas } from '../engine/types'
 
-const CHAVE_LS = 'horizonte:premissas:v2'
-const CHAVE_LS_ANTIGA = 'horizonte:premissas:v1'
+const CHAVE_LS = 'horizonte:premissas:v3'
+const CHAVE_LS_ANTIGA_V2 = 'horizonte:premissas:v2'
+const CHAVE_LS_ANTIGA_V1 = 'horizonte:premissas:v1'
 const MAX_EXTRAS = 8
-const VERSAO_LINK = 2
+const VERSAO_LINK = 3
 
 // ---- codificação para o hash da URL (JSON -> UTF-8 -> base64url) ----
 
@@ -93,6 +94,8 @@ export function normalizar(p: Premissas): Premissas {
     inflacao: limitar(p.inflacao, 0, 12),
     despesaMensal: limitar(p.despesaMensal, 1000, 1e7),
     outraRendaPosParar: limitar(p.outraRendaPosParar, 0, 1e7),
+    estrategiaPosParar: p.estrategiaPosParar === 'renda_passiva' ? 'renda_passiva' : 'retirada',
+    taxaRendaPassiva: limitar(Number.isFinite(p.taxaRendaPassiva) ? p.taxaRendaPassiva : 4, 0.1, 15),
     taxaRetirada: limitar(p.taxaRetirada, 2, 6),
     aporteModo: p.aporteModo === 'fixo' ? 'fixo' : 'percentual',
     cenarios: {
@@ -113,6 +116,9 @@ export function normalizar(p: Premissas): Premissas {
 export function sanear(entrada: unknown): Premissas {
   const base = premissasPadrao()
   const p = mesclar(base, entrada)
+  // Planos anteriores à v3 usavam exclusivamente retirada do patrimônio.
+  // Preservar essa semântica evita alterar silenciosamente links e dados salvos.
+  if (ehObj(entrada) && !('estrategiaPosParar' in entrada)) p.estrategiaPosParar = 'retirada'
   const extrasIn = ehObj(entrada) && Array.isArray(entrada.extras) ? entrada.extras : base.extras
   p.extras = extrasIn.slice(0, MAX_EXTRAS).map((e, i) => {
     const m = mesclar(novaCompra(p.idadeAtual), e)
@@ -124,7 +130,7 @@ export function sanear(entrada: unknown): Premissas {
 
 function extrairPremissasDoLink(entrada: unknown): unknown {
   if (!ehObj(entrada) || !('versao' in entrada)) return entrada // compatibilidade com links v1
-  if (entrada.versao !== VERSAO_LINK || !('premissas' in entrada)) {
+  if ((entrada.versao !== 2 && entrada.versao !== VERSAO_LINK) || !('premissas' in entrada)) {
     throw new Error('versão de link incompatível')
   }
   return entrada.premissas
@@ -160,7 +166,10 @@ export function carregarInicial(): CargaInicial {
     }
   }
   try {
-    const salvo = window.localStorage.getItem(CHAVE_LS) ?? window.localStorage.getItem(CHAVE_LS_ANTIGA)
+    const salvo =
+      window.localStorage.getItem(CHAVE_LS) ??
+      window.localStorage.getItem(CHAVE_LS_ANTIGA_V2) ??
+      window.localStorage.getItem(CHAVE_LS_ANTIGA_V1)
     if (salvo) return { premissas: sanear(JSON.parse(salvo)), origem: 'local', aviso: null }
   } catch {
     /* sem storage */
@@ -184,7 +193,8 @@ export function persistir(p: Premissas): void {
 export function limparPersistencia(): void {
   try {
     window.localStorage.removeItem(CHAVE_LS)
-    window.localStorage.removeItem(CHAVE_LS_ANTIGA)
+    window.localStorage.removeItem(CHAVE_LS_ANTIGA_V2)
+    window.localStorage.removeItem(CHAVE_LS_ANTIGA_V1)
   } catch {
     /* ignora */
   }

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { fmtBRL, fmtBRLCompacto, fmtFracao, fmtIdade, fmtMeses } from '../engine/formatos'
-import { deficitMetaReal, numeroLiberdade, patrimonioNaIdade, rendaSustentavelReal, resultadoMeta, type ImpactoBarco } from '../engine/metas'
+import { deficitMetaReal, numeroLiberdade, patrimonioNaIdade, rendaDoPatrimonioReal, resultadoMeta, taxaRendaObjetivo, type ImpactoBarco } from '../engine/metas'
 import type { ResultadoMonteCarlo } from '../engine/montecarlo'
 import { deflatorMes } from '../engine/projecao'
 import type { IdCenario, Premissas, Serie } from '../engine/types'
@@ -37,9 +37,10 @@ export function Kpis({ p, series, libs, impactos, mc, mcIndisponivel, v }: Props
   const defParar = v.real ? 1 : deflatorMes(p, Math.round((p.idadeParar - p.idadeAtual) * 12))
   const patParar = patrimonioNaIdade(p, base, p.idadeParar, v.real)
   const mult = v.periodo === 'mensal' ? 1 : 12
-  const renda = rendaSustentavelReal(p, base, p.idadeParar) * defParar * mult
-  const despesa = p.despesaMensal * defParar * mult
+  const renda = rendaDoPatrimonioReal(p, base, p.idadeParar) * defParar * mult
+  const necessidade = Math.max(0, p.despesaMensal - p.outraRendaPosParar) * defParar * mult
   const unidade = v.periodo === 'mensal' ? '/mês' : '/ano'
+  const soRendaPassiva = p.estrategiaPosParar === 'renda_passiva'
 
   let subLib: ReactNode = `Não é atingida até os ${p.idadeFinal} anos neste cenário.`
   let tomLib = 'alerta'
@@ -66,20 +67,26 @@ export function Kpis({ p, series, libs, impactos, mc, mcIndisponivel, v }: Props
         sub={subMc('considerando a oscilação dos mercados')}
       />
       <Kpi
-        rotulo={`Chance do dinheiro durar até os ${p.idadeFinal}`}
+        rotulo={soRendaPassiva
+          ? `Chance de viver só da renda até os ${p.idadeFinal}`
+          : `Chance do dinheiro durar até os ${p.idadeFinal}`}
         valor={valorMc(mc?.probDura)}
-        sub={subMc('sem zerar o patrimônio na fase de saque; metas sem saldo não são compradas')}
+        sub={subMc(soRendaPassiva
+          ? 'sem vender o principal para cobrir despesas; metas continuam avaliadas separadamente'
+          : 'sem zerar o patrimônio na fase de retirada; metas sem saldo não são compradas')}
       />
       <Kpi
         rotulo={`Patrimônio aos ${p.idadeParar}`}
         valor={fmtBRLCompacto(patParar)}
-        sub={`${v.real ? 'em R$ de hoje' : 'valor nominal futuro'} · número da liberdade: ${fmtBRLCompacto(numeroLiberdade(p) * (v.real ? 1 : defParar))}`}
+        sub={`${v.real ? 'em R$ de hoje' : 'valor nominal futuro'} · patrimônio-alvo: ${fmtBRLCompacto(numeroLiberdade(p) * (v.real ? 1 : defParar))}`}
       />
       <Kpi
-        rotulo={`Renda passiva sustentável${unidade}`}
+        rotulo={`${soRendaPassiva ? 'Renda passiva disponível' : 'Retirada sustentável'}${unidade}`}
         valor={fmtBRL(renda)}
-        sub={`aos ${p.idadeParar} anos, a ${p.taxaRetirada.toLocaleString('pt-BR')}% a.a. · despesa desejada ${fmtBRL(despesa)}${unidade}`}
-        tom={renda >= despesa ? 'ok' : 'atencao'}
+        sub={soRendaPassiva
+          ? `aos ${p.idadeParar} anos, renda líquida de ${taxaRendaObjetivo(p).toLocaleString('pt-BR')}% a.a. · precisa cobrir ${fmtBRL(necessidade)}${unidade}; o excedente é reinvestido`
+          : `aos ${p.idadeParar} anos, taxa de ${taxaRendaObjetivo(p).toLocaleString('pt-BR')}% a.a. · precisa cobrir ${fmtBRL(necessidade)}${unidade}`}
+        tom={renda >= necessidade ? 'ok' : 'atencao'}
       />
       {p.barco.ativo && metaBarco?.status === 'sem_recursos' ? (
         <Kpi
@@ -121,6 +128,7 @@ export function Metas({
   mc: ResultadoMonteCarlo | null
 }) {
   const numero = numeroLiberdade(p)
+  const soRendaPassiva = p.estrategiaPosParar === 'renda_passiva'
   const progresso = numero <= 0 ? 1 : Math.min(1, p.patrimonioInicial / numero)
   const anoDe = (idade: number) => p.anoBase + Math.round(idade - p.idadeAtual)
   const custoNaCompra = p.barco.valor * deflatorMes(p, Math.round((p.barco.idade - p.idadeAtual) * 12))
@@ -135,8 +143,8 @@ export function Metas({
         <h3><Icone nome="liberdade" /> Meta 1 · Liberdade financeira</h3>
         <p className="meta-num">{fmtBRLCompacto(numero)}</p>
         <p className="meta-legenda">
-          para viver com {fmtBRL(p.despesaMensal)}/mês
-          {p.outraRendaPosParar > 0 && ` (+ ${fmtBRL(p.outraRendaPosParar)} de outra renda)`} · em R$ de hoje
+          {soRendaPassiva ? 'para viver só da renda do patrimônio' : 'para sustentar retiradas planejadas'} com despesa de {fmtBRL(p.despesaMensal)}/mês
+          {p.outraRendaPosParar > 0 && ` e ${fmtBRL(p.outraRendaPosParar)}/mês de outra renda`} · em R$ de hoje
         </p>
         <div className="barra" role="progressbar" aria-valuenow={Math.round(progresso * 100)} aria-valuemin={0} aria-valuemax={100} aria-label="Progresso até a liberdade">
           <span style={{ width: `${Math.max(1, progresso * 100)}%` }} />

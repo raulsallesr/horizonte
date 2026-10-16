@@ -200,15 +200,16 @@ export function GraficoFluxo({ p, serieBase, v, idadeVirada }: PropsFluxo) {
   const dados: PontoFluxo[] = dadosFluxo(p, serieBase, v)
   const janela = dados.filter((d) => d.idade <= p.idadeParar + 5)
   const topo = redondoCima(Math.max(1, ...janela.map((d) => d.aporte + d.rendimento)) * 1.2)
-  const fundo = -redondoCima(Math.max(0, ...dados.map((d) => -d.retirada))) * (dados.some((d) => d.retirada < 0) ? 1 : 0)
+  const fundo = -redondoCima(Math.max(0, ...dados.map((d) => -d.retirada - d.deficitRenda))) * (dados.some((d) => d.retirada < 0 || d.deficitRenda < 0) ? 1 : 0)
   const unidade = v.periodo === 'mensal' ? 'por mês (média do ano)' : 'por ano'
+  const soRendaPassiva = p.estrategiaPosParar === 'renda_passiva'
   const resumo = idadeVirada === null
     ? 'O rendimento real não supera os aportes dentro do horizonte projetado.'
     : `O rendimento real passa a superar os aportes por volta dos ${Math.round(idadeVirada)} anos.`
   return (
     <Cartao
       titulo="Quanto o dinheiro rende — e quanto você aporta"
-      sub={`Cenário Base, ${unidade}${v.real ? ', em R$ de hoje e já descontada a inflação' : ''}. Quando a barra amarela passa a verde, o dinheiro trabalha mais do que você.`}
+      sub={`Cenário Base, ${unidade}${v.real ? ', em R$ de hoje e já descontada a inflação' : ''}. Quando a barra amarela passa a verde, o dinheiro trabalha mais do que você.${soRendaPassiva ? ' Déficits não cobertos não são retirados do principal.' : ''}`}
       resumo={resumo}
     >
       <EscalaToggle completo={completo} onChange={setCompleto} />
@@ -221,7 +222,8 @@ export function GraficoFluxo({ p, serieBase, v, idadeVirada }: PropsFluxo) {
             <ReferenceLine y={0} stroke="var(--borda)" />
             <Bar name="Aporte" dataKey="aporte" stackId="f" fill="var(--c-aporte)" isAnimationActive={false} />
             <Bar name="Rendimento" dataKey="rendimento" stackId="f" fill="var(--c-sol)" isAnimationActive={false} />
-            <Bar name="Retirada" dataKey="retirada" stackId="f" fill="var(--c-pess)" isAnimationActive={false} />
+            <Bar name={soRendaPassiva ? 'Renda usada' : 'Retirada'} dataKey="retirada" stackId="f" fill="var(--c-pess)" isAnimationActive={false} />
+            {soRendaPassiva && <Bar name="Déficit não coberto" dataKey="deficitRenda" stackId="f" fill="var(--atencao)" isAnimationActive={false} />}
             {idadeVirada !== null && marcador(xDe(p, v, idadeVirada), 'rendimento > aporte', 'var(--c-sol)')}
           </ComposedChart>
         </ResponsiveContainer>
@@ -230,7 +232,8 @@ export function GraficoFluxo({ p, serieBase, v, idadeVirada }: PropsFluxo) {
         itens={[
           ['Aporte', 'var(--c-aporte)'],
           ['Rendimento', 'var(--c-sol)'],
-          ['Retirada (depois de parar)', 'var(--c-pess)'],
+          [soRendaPassiva ? 'Renda passiva usada' : 'Retirada (depois de parar)', 'var(--c-pess)'],
+          ...(soRendaPassiva ? [['Déficit não coberto', 'var(--atencao)'] as [string, string]] : []),
         ]}
       />
     </Cartao>

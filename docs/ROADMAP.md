@@ -23,6 +23,15 @@ O roadmap prioriza confiabilidade antes de ampliar o realismo do modelo. Datas n
 
 O Dependabot já monitora mensalmente dependências npm e GitHub Actions.
 
+## Entregue — v1.3.0 (renda passiva)
+
+- estratégia para reinvestir todos os rendimentos enquanto trabalha e viver somente da renda distribuída depois;
+- modo alternativo de renda mais retiradas, preservando o contrato anterior;
+- taxa de renda passiva separada e sem dupla contagem com o retorno total;
+- déficit de renda explícito, sem venda automática do principal;
+- diagnóstico, Monte Carlo, gráficos, tabela, CSV e links compartilháveis alinhados à estratégia;
+- migração conservadora de planos anteriores para o modo de retirada.
+
 ## Próxima etapa — governança e evolução do produto
 
 - ativar no painel do GitHub o ruleset documentado para a branch `main`;

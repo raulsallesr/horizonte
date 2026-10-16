@@ -461,6 +461,22 @@ label {
   color: var(--muted);
   font-size: 0.8rem;
 }
+.estrategia-nota {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 12px;
+  color: var(--muted);
+  background: var(--surface2);
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.estrategia-nota .icone-svg {
+  margin-top: 1px;
+  color: var(--c-base);
+}
 
 .cenario {
   border-left: 3px solid var(--borda);

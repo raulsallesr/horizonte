@@ -71,4 +71,27 @@ describe('diagnóstico do plano', () => {
     expect(alternativa.valorMaximoHoje).toBeLessThan(p.barco.valor)
     expect(alternativa.valorMaximoHoje).toBeGreaterThanOrEqual(0)
   })
+
+  it('marca falta de renda passiva sem consumir o principal', () => {
+    const base = premissasPadrao(2026)
+    const p = {
+      ...base,
+      estrategiaPosParar: 'renda_passiva' as const,
+      taxaRendaPassiva: 4,
+      patrimonioInicial: 100_000,
+      idadeAtual: 60,
+      idadeParar: 60,
+      idadeFinal: 65,
+      despesaMensal: 10_000,
+      barco: { ...base.barco, ativo: false },
+      extras: [],
+    }
+    const serie = projetar(p, 'base')
+    const diagnostico = diagnosticarPlano(p, serie)
+
+    expect(diagnostico.duraAteOHorizonte).toBe(false)
+    expect(serie.faltouRendaNaFasePosPararK).toBe(1)
+    expect(serie.esgotouNaFaseDeSaqueK).toBe(-1)
+    expect(serie.pat[serie.meses]).toBeGreaterThan(0)
+  })
 })

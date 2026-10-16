@@ -14,6 +14,7 @@ function limpa(extra: Partial<Premissas> = {}): Premissas {
     inflacao: 0,
     aumentoRealSalario: 0,
     decimoTerceiro: false,
+    estrategiaPosParar: 'retirada',
     barco: { ...p.barco, ativo: false },
     extras: [],
     ...extra,
@@ -113,6 +114,66 @@ describe('projeção determinística', () => {
     expect(s.retirada[1]).toBeCloseTo(5000, 6)
   })
 
+  it('reinveste todo o retorno enquanto trabalha no modo renda passiva', () => {
+    const p = limpa({
+      estrategiaPosParar: 'renda_passiva',
+      taxaRendaPassiva: 6,
+      patrimonioInicial: 100_000,
+      aporteModo: 'fixo',
+      aporteFixo: 0,
+      idadeAtual: 30,
+      idadeParar: 31,
+      idadeFinal: 32,
+    })
+    p.cenarios.base = { ...p.cenarios.base, rentAnual: 12, vol: 0 }
+    const s = projetar(p, 'base')
+
+    expect(s.pat[12]).toBeCloseTo(112_000, 4)
+    expect(s.rendaPassiva[12]).toBe(0)
+    expect(s.retirada[12]).toBe(0)
+  })
+
+  it('usa somente a renda distribuída e registra o déficit sem vender o principal', () => {
+    const p = limpa({
+      estrategiaPosParar: 'renda_passiva',
+      taxaRendaPassiva: 12,
+      patrimonioInicial: 100_000,
+      idadeAtual: 60,
+      idadeParar: 60,
+      idadeFinal: 61,
+      despesaMensal: 2_000,
+    })
+    p.cenarios.base = { ...p.cenarios.base, rentAnual: (Math.pow(1.01, 12) - 1) * 100, vol: 0 }
+    const s = projetar(p, 'base')
+    const rendaMes = 1_000
+
+    expect(s.rendaPassiva[1]).toBeCloseTo(rendaMes, 6)
+    expect(s.retirada[1]).toBeCloseTo(rendaMes, 6)
+    expect(s.deficitRenda[1]).toBeCloseTo(2_000 - rendaMes, 6)
+    expect(s.pat[1]).toBeCloseTo(100_000, 6)
+    expect(s.esgotouNaFaseDeSaqueK).toBe(-1)
+    expect(s.faltouRendaNaFasePosPararK).toBe(1)
+  })
+
+  it('reinveste o excedente da renda passiva depois de parar', () => {
+    const p = limpa({
+      estrategiaPosParar: 'renda_passiva',
+      taxaRendaPassiva: 12,
+      patrimonioInicial: 100_000,
+      idadeAtual: 60,
+      idadeParar: 60,
+      idadeFinal: 61,
+      despesaMensal: 500,
+    })
+    p.cenarios.base = { ...p.cenarios.base, rentAnual: (Math.pow(1.01, 12) - 1) * 100, vol: 0 }
+    const s = projetar(p, 'base')
+
+    expect(s.retirada[1]).toBe(500)
+    expect(s.deficitRenda[1]).toBe(0)
+    expect(s.pat[1]).toBeGreaterThan(100_000)
+    expect(s.faltouRendaNaFasePosPararK).toBe(-1)
+  })
+
   it('outra renda pós-parar reduz a retirada e o número da liberdade', () => {
     const p = limpa({ despesaMensal: 5000, outraRendaPosParar: 2000, taxaRetirada: 4 })
     expect(numeroLiberdade(p)).toBeCloseTo((3000 * 12) / 0.04, 6)
@@ -201,6 +262,17 @@ describe('metas', () => {
   it('número da liberdade = despesa anual / taxa de retirada', () => {
     const p = limpa({ despesaMensal: 5500, outraRendaPosParar: 0, taxaRetirada: 4 })
     expect(numeroLiberdade(p)).toBeCloseTo(1650000, 6)
+  })
+
+  it('modo renda passiva calcula a liberdade pela renda distribuída', () => {
+    const p = limpa({
+      estrategiaPosParar: 'renda_passiva',
+      despesaMensal: 5_000,
+      outraRendaPosParar: 1_000,
+      taxaRendaPassiva: 6,
+      taxaRetirada: 2,
+    })
+    expect(numeroLiberdade(p)).toBeCloseTo(800_000, 6)
   })
 
   it('persona padrão atinge a liberdade e o barco atrasa (ou não adianta) a data', () => {

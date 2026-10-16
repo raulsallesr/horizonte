@@ -19,6 +19,7 @@ export function PainelPremissas({ p, set, modo, onModo }: Props) {
     set((x) => ({ ...x, barco: { ...x.barco, ...patch } }))
   const upExtra = (id: string, patch: Partial<Compra>) =>
     set((x) => ({ ...x, extras: x.extras.map((e) => (e.id === id ? { ...e, ...patch } : e)) }))
+  const soRendaPassiva = p.estrategiaPosParar === 'renda_passiva'
 
   return (
     <aside id="premissas" className="painel" aria-label="Premissas da simulação">
@@ -51,7 +52,9 @@ export function PainelPremissas({ p, set, modo, onModo }: Props) {
           min={p.idadeAtual}
           max={80}
           sufixo="anos"
-          ajuda="Até aqui você aporta; depois disso passa a viver do patrimônio."
+          ajuda={soRendaPassiva
+            ? 'Até aqui, aportes e rendimentos ficam investidos. Depois, você usa somente a renda distribuída.'
+            : 'Até aqui você aporta; depois disso pode fazer retiradas do patrimônio.'}
           onChange={(v) => up('idadeParar', v)}
         />
         {modo === 'avancado' && <Campo rotulo="Planejar até" valor={p.idadeFinal} min={Math.max(60, p.idadeParar + 1)} max={105} sufixo="anos" onChange={(v) => up('idadeFinal', v)} />}
@@ -139,15 +142,53 @@ export function PainelPremissas({ p, set, modo, onModo }: Props) {
       </Secao>}
 
       <Secao titulo="Liberdade financeira" icone="liberdade">
+        <Segmentado
+          rotulo="Estratégia depois de parar de trabalhar"
+          valor={p.estrategiaPosParar}
+          onChange={(v) => up('estrategiaPosParar', v)}
+          opcoes={[
+            { id: 'renda_passiva', nome: 'Só renda passiva' },
+            { id: 'retirada', nome: 'Renda + retiradas' },
+          ]}
+        />
+        <div className="estrategia-nota" role="note">
+          <Icone nome={soRendaPassiva ? 'investimentos' : 'liberdade'} />
+          <p>
+            {soRendaPassiva
+              ? 'Enquanto você trabalha, 100% dos rendimentos é reinvestido. Depois, dividendos e juros pagam as despesas; se faltar renda, o principal não é vendido.'
+              : 'Depois de parar, os rendimentos e retiradas programadas do patrimônio podem pagar as despesas.'}
+          </p>
+        </div>
         <Campo rotulo="Despesa mensal desejada" valor={p.despesaMensal} min={1000} max={40000} passo={250} prefixo="R$" maxDigitavel={1e7} ajuda="Em R$ de hoje." onChange={(v) => up('despesaMensal', v)} />
+        {soRendaPassiva ? (
+          <Campo
+            rotulo="Renda passiva líquida esperada"
+            valor={p.taxaRendaPassiva}
+            min={0.1}
+            max={15}
+            passo={0.1}
+            sufixo="% a.a."
+            ajuda="Parcela do retorno total paga como dividendos ou juros. Não é somada novamente à rentabilidade dos cenários."
+            onChange={(v) => up('taxaRendaPassiva', v)}
+          />
+        ) : (
+          <Campo
+            rotulo="Taxa de retirada sustentável"
+            valor={p.taxaRetirada}
+            min={2}
+            max={6}
+            passo={0.1}
+            sufixo="% a.a."
+            ajuda="Pode combinar rendimentos com a venda gradual de ativos."
+            onChange={(v) => up('taxaRetirada', v)}
+          />
+        )}
         {modo === 'avancado' && (
-          <>
-            <Campo rotulo="Outra renda após parar" valor={p.outraRendaPosParar} min={0} max={20000} passo={250} prefixo="R$" maxDigitavel={1e7} ajuda="INSS, aluguel, pensão… (R$ de hoje)." onChange={(v) => up('outraRendaPosParar', v)} />
-            <Campo rotulo="Taxa de retirada segura" valor={p.taxaRetirada} min={2} max={6} passo={0.1} sufixo="% a.a." onChange={(v) => up('taxaRetirada', v)} />
-          </>
+          <Campo rotulo="Outra renda após parar" valor={p.outraRendaPosParar} min={0} max={20000} passo={250} prefixo="R$" maxDigitavel={1e7} ajuda="INSS, aluguel, pensão… (R$ de hoje)." onChange={(v) => up('outraRendaPosParar', v)} />
         )}
         <p className="destaque-num">
-          Número da liberdade: <strong>{fmtBRLCompacto(numeroLiberdade(p))}</strong> <span>(em R$ de hoje)</span>
+          {soRendaPassiva ? 'Patrimônio para viver só da renda' : 'Número da liberdade'}:{' '}
+          <strong>{fmtBRLCompacto(numeroLiberdade(p))}</strong> <span>(em R$ de hoje)</span>
         </p>
       </Secao>
 

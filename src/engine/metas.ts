@@ -1,10 +1,15 @@
 import { resumoAnual, simular } from './projecao'
 import type { Compra, IdCenario, Premissas, ResultadoMeta, Serie, StatusMeta } from './types'
 
-/** Patrimônio (R$ de hoje) que sustenta a despesa desejada com a taxa de retirada segura. */
+/** Taxa usada para calcular a renda mensal do patrimônio em cada estratégia. */
+export function taxaRendaObjetivo(p: Premissas): number {
+  return p.estrategiaPosParar === 'renda_passiva' ? p.taxaRendaPassiva : p.taxaRetirada
+}
+
+/** Patrimônio (R$ de hoje) que cobre a despesa líquida na estratégia escolhida. */
 export function numeroLiberdade(p: Premissas): number {
   const liquida = Math.max(0, p.despesaMensal - p.outraRendaPosParar)
-  return (liquida * 12) / (p.taxaRetirada / 100)
+  return (liquida * 12) / (taxaRendaObjetivo(p) / 100)
 }
 
 /** Primeiro mês em que o patrimônio real cruza `alvo` (R$ de hoje); -1 se nunca. */
@@ -51,9 +56,9 @@ export function patrimonioNaIdade(p: Premissas, s: Serie, idade: number, real: b
   return real ? s.pat[k] / s.defl[k] : s.pat[k]
 }
 
-/** Renda mensal sustentável (R$ de hoje) que o patrimônio da idade dada gera na taxa de retirada. */
-export function rendaSustentavelReal(p: Premissas, s: Serie, idade: number): number {
-  return (patrimonioNaIdade(p, s, idade, true) * (p.taxaRetirada / 100)) / 12
+/** Renda mensal (R$ de hoje) disponível conforme a estratégia escolhida. */
+export function rendaDoPatrimonioReal(p: Premissas, s: Serie, idade: number): number {
+  return (patrimonioNaIdade(p, s, idade, true) * (taxaRendaObjetivo(p) / 100)) / 12
 }
 
 /** Primeira idade em que o rendimento real do ano passa o aporte do ano (o "ponto de virada"). */
