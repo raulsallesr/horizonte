@@ -145,4 +145,6 @@ Em 16/10/2026, antes da publicação:
 - reserva ativada e inspecionada visualmente em tema claro a 1440 × 1000 e tema escuro a 390 × 844 pixels;
 - `npm audit --audit-level=moderate`: 0 vulnerabilidades;
 - Lighthouse local: acessibilidade 100, SEO 100, LCP 2,98 s, CLS 0,03 e 93 KiB transferidos; performance 77, FCP 2,56 s e TBT 533 ms ficaram abaixo do gate local durante a interferência já conhecida do Kaspersky;
-- os limites não foram reduzidos: a publicação da v1.5.0 depende da aprovação integral no runner limpo do GitHub Actions.
+- os limites não foram reduzidos; o runner limpo do GitHub Actions aprovou todos os gates, incluindo Lighthouse, no pipeline `38958348058`;
+- release `v1.5.0`: workflow `38958576163` aprovado;
+- bundle público e build local: SHA-256 `CD5E63E6198C00CFC7E427A1969FB4E0E9E545BD62BBF764A5BC7FC3803FB709` em ambos.

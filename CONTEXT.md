@@ -3,17 +3,17 @@
 Este arquivo é o ponto de retomada entre sessões. Leia-o antes de iniciar uma nova frente e atualize-o ao concluir qualquer lote material de trabalho.
 
 - **Última atualização:** 16/10/2026
-- **Estado publicado:** `v1.4.0`
-- **Commit da release:** `79201fc` (`feat: adicionar fases pos-trabalho`)
+- **Estado publicado:** `v1.5.0`
+- **Commit da release:** `542d66e` (`feat: adicionar reserva de emergencia`)
 
 ## Estado atual
 
 - site público: <https://raulsallesr.github.io/horizonte/>;
-- release: <https://github.com/raulsallesr/horizonte/releases/tag/v1.4.0>;
-- pipeline de publicação validado: <https://github.com/raulsallesr/horizonte/actions/runs/38918089806>;
-- workflow de release validado: <https://github.com/raulsallesr/horizonte/actions/runs/38918426904>;
-- o bundle público foi comparado com o build local por SHA-256 e ambos resultaram em `D2AE78373AA7A639EB2ECCA2A10246D7F51EAC8E8647AFEB34814003CB91F095`;
-- a `main` estava alinhada com `origin/main` ao publicar a entrega `v1.4.0`;
+- release: <https://github.com/raulsallesr/horizonte/releases/tag/v1.5.0>;
+- pipeline de publicação validado: <https://github.com/raulsallesr/horizonte/actions/runs/38958348058>;
+- workflow de release validado: <https://github.com/raulsallesr/horizonte/actions/runs/38958576163>;
+- o bundle público foi comparado com o build local por SHA-256 e ambos resultaram em `CD5E63E6198C00CFC7E427A1969FB4E0E9E545BD62BBF764A5BC7FC3803FB709`;
+- a `main` estava alinhada com `origin/main` ao publicar a entrega `v1.5.0`;
 - o projeto é uma aplicação estática: cálculos e dados do usuário permanecem no navegador.
 
 ## O que foi entregue na v1.2.0
@@ -49,6 +49,18 @@ Validação em 16/10/2026: lint, 40 testes unitários, build e 18 cenários Play
 
 Validação em 16/10/2026: lint, 45 testes unitários, build e 20 cenários Playwright aprovados; axe não encontrou violações WCAG A/AA; temas claro e escuro revisados em 390 × 844 pixels; `npm audit` encontrou 0 vulnerabilidades. O Lighthouse local sofreu tarefas longas atípicas e injeção conhecida do Kaspersky, sem redução dos limites; o runner limpo do GitHub Actions aprovou todos os gates e publicou o site.
 
+## O que foi entregue na v1.5.0
+
+- reserva de emergência opcional, com saldo separado do patrimônio investido;
+- meta em meses da despesa permanente e aporte mensal próprio;
+- prioridade da reserva no aporte enquanto a pessoa trabalha, sem ultrapassar a meta e com investimento imediato da sobra;
+- saldo corrigido somente pela inflação, sem ganho real presumido;
+- reserva protegida de despesas planejadas, déficit de renda passiva, retiradas, caixinhas e metas;
+- KPI na idade de parar, tabela anual e CSV com saldo e aportes separados;
+- schema 5 com migração conservadora de links e dados das versões 1 a 4 para reserva desativada.
+
+Validação em 16/10/2026: lint, 51 testes unitários, build e 22 cenários Playwright aprovados; axe não encontrou violações WCAG A/AA em desktop ou mobile; temas claro e escuro revisados; `npm audit` encontrou 0 vulnerabilidades. O Lighthouse local repetiu a interferência conhecida do Kaspersky, sem redução dos limites; o runner limpo do GitHub Actions aprovou todos os gates, incluindo Lighthouse, e publicou o site. O bundle publicado foi confirmado por SHA-256.
+
 ## Evidências da validação
 
 Em 15/10/2026, antes da publicação:
@@ -75,7 +87,9 @@ Os critérios completos e os casos manuais estão em [docs/VALIDACAO.md](docs/VA
 - não reduzir gates por causa da injeção local do Kaspersky; usar a execução limpa da CI como referência.
 - no modo renda passiva, nunca cobrir déficit de despesas com venda silenciosa do principal;
 - renda passiva distribuída compõe o retorno total do cenário e não pode ser somada novamente;
-- durante a fase de trabalho, rendimentos e aportes permanecem integralmente reinvestidos.
+- durante a fase de trabalho, rendimentos e aportes permanecem integralmente reinvestidos;
+- a reserva de emergência é uma caixa protegida: não somá-la ao patrimônio investido nem usá-la para despesas planejadas, metas ou renda passiva;
+- o aporte da reserva tem prioridade apenas enquanto a pessoa trabalha e somente até completar a meta; a sobra volta aos investimentos no mesmo mês.
 
 ## Pendências e próxima ordem de trabalho
 
