@@ -3,16 +3,17 @@
 Este arquivo é o ponto de retomada entre sessões. Leia-o antes de iniciar uma nova frente e atualize-o ao concluir qualquer lote material de trabalho.
 
 - **Última atualização:** 16/10/2026
-- **Estado publicado:** `v1.2.0`
-- **Próxima entrega validada localmente:** `v1.3.0` (renda passiva)
-**Commit da release:** `4930ee6` (`docs: preparar governanca e release v1.2.0`)
+- **Estado publicado:** `v1.3.0`
+- **Commit da release:** `c85c466` (`feat: adicionar estrategia de renda passiva`)
 
 ## Estado atual
 
 - site público: <https://raulsallesr.github.io/horizonte/>;
-- release: <https://github.com/raulsallesr/horizonte/releases/tag/v1.2.0>;
-- pipeline validado: <https://github.com/raulsallesr/horizonte/actions/runs/38809811915>;
-- a `main` estava limpa e alinhada com `origin/main` ao encerrar a entrega `v1.2.0`;
+- release: <https://github.com/raulsallesr/horizonte/releases/tag/v1.3.0>;
+- pipeline de publicação validado: <https://github.com/raulsallesr/horizonte/actions/runs/38905667889>;
+- workflow de release validado: <https://github.com/raulsallesr/horizonte/actions/runs/38906001753>;
+- o bundle público foi comparado com o build local por SHA-256 e ambos resultaram em `84D119538BAE975199B4F3BCFBEE8DC9B20A2D43D5BADAA6FDF2D5DD96F392C1`;
+- a `main` estava alinhada com `origin/main` ao publicar a entrega `v1.3.0`;
 - o projeto é uma aplicação estática: cálculos e dados do usuário permanecem no navegador.
 
 ## O que foi entregue na v1.2.0
@@ -25,7 +26,7 @@ Este arquivo é o ponto de retomada entre sessões. Leia-o antes de iniciar uma 
 - pipeline de lint, testes, build, E2E, Lighthouse, artefatos e deploy no GitHub Pages;
 - workflow de release por tag, `CODEOWNERS`, política de segurança e documentação de governança.
 
-## O que está pronto para a v1.3.0
+## O que foi entregue na v1.3.0
 
 - novo padrão “só renda passiva”: todos os retornos são reinvestidos enquanto a pessoa trabalha;
 - depois de parar, despesas usam apenas a renda distribuída e nunca vendem o principal para cobrir faltas;
@@ -35,7 +36,7 @@ Este arquivo é o ponto de retomada entre sessões. Leia-o antes de iniciar uma 
 - diagnóstico, Monte Carlo, gráfico, tabela, CSV, comparação e link compartilhável respeitam a estratégia;
 - links e dados anteriores migram para o modo de retirada, preservando a semântica original.
 
-Validação local em 16/10/2026: lint, 40 testes unitários, build e 18 cenários Playwright aprovados; axe não encontrou violações WCAG A/AA em desktop ou mobile; Lighthouse marcou performance 91, acessibilidade 100 e SEO 100; `npm audit` encontrou 0 vulnerabilidades.
+Validação em 16/10/2026: lint, 40 testes unitários, build e 18 cenários Playwright aprovados; axe não encontrou violações WCAG A/AA em desktop ou mobile; Lighthouse marcou performance 91, acessibilidade 100 e SEO 100; `npm audit` encontrou 0 vulnerabilidades. O GitHub Actions concluiu com sucesso tanto a publicação do site quanto a criação do release `v1.3.0`.
 
 ## Evidências da validação
 
@@ -67,11 +68,10 @@ Os critérios completos e os casos manuais estão em [docs/VALIDACAO.md](docs/VA
 
 ## Pendências e próxima ordem de trabalho
 
-1. Publicar e confirmar a `v1.3.0` no GitHub Actions e no site público.
-2. Ativar manualmente o ruleset da branch `main` conforme [docs/GITHUB.md](docs/GITHUB.md): bloquear exclusão e `force push`, exigir o check `build` e a resolução de conversas.
-3. Observar a estabilidade dos gates nas próximas execuções reais da CI.
-4. Validar instalação e retomada offline da PWA em aparelhos físicos.
-5. Escolher a próxima evolução financeira do [roadmap](docs/ROADMAP.md) e documentar seu contrato antes de implementar.
+1. Ativar manualmente o ruleset da branch `main` conforme [docs/GITHUB.md](docs/GITHUB.md): bloquear exclusão e `force push`, exigir o check `build` e a resolução de conversas.
+2. Observar a estabilidade dos gates nas próximas execuções reais da CI.
+3. Validar instalação e retomada offline da PWA em aparelhos físicos.
+4. Escolher a próxima evolução financeira do [roadmap](docs/ROADMAP.md) e documentar seu contrato antes de implementar.
 
 A ativação do ruleset é administrativa e não pode ser inferida apenas pelo conteúdo do repositório. Confirme o estado ao vivo no GitHub antes de marcá-la como concluída.
 
