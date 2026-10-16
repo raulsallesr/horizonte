@@ -3,18 +3,17 @@
 Este arquivo é o ponto de retomada entre sessões. Leia-o antes de iniciar uma nova frente e atualize-o ao concluir qualquer lote material de trabalho.
 
 - **Última atualização:** 16/10/2026
-- **Estado publicado:** `v1.3.0`
-- **Próxima entrega validada localmente:** `v1.4.0` (fases pós-trabalho)
-- **Commit da release:** `c85c466` (`feat: adicionar estrategia de renda passiva`)
+- **Estado publicado:** `v1.4.0`
+- **Commit da release:** `79201fc` (`feat: adicionar fases pos-trabalho`)
 
 ## Estado atual
 
 - site público: <https://raulsallesr.github.io/horizonte/>;
-- release: <https://github.com/raulsallesr/horizonte/releases/tag/v1.3.0>;
-- pipeline de publicação validado: <https://github.com/raulsallesr/horizonte/actions/runs/38905667889>;
-- workflow de release validado: <https://github.com/raulsallesr/horizonte/actions/runs/38906001753>;
-- o bundle público foi comparado com o build local por SHA-256 e ambos resultaram em `84D119538BAE975199B4F3BCFBEE8DC9B20A2D43D5BADAA6FDF2D5DD96F392C1`;
-- a `main` estava alinhada com `origin/main` ao publicar a entrega `v1.3.0`;
+- release: <https://github.com/raulsallesr/horizonte/releases/tag/v1.4.0>;
+- pipeline de publicação validado: <https://github.com/raulsallesr/horizonte/actions/runs/38918089806>;
+- workflow de release validado: <https://github.com/raulsallesr/horizonte/actions/runs/38918426904>;
+- o bundle público foi comparado com o build local por SHA-256 e ambos resultaram em `D2AE78373AA7A639EB2ECCA2A10246D7F51EAC8E8647AFEB34814003CB91F095`;
+- a `main` estava alinhada com `origin/main` ao publicar a entrega `v1.4.0`;
 - o projeto é uma aplicação estática: cálculos e dados do usuário permanecem no navegador.
 
 ## O que foi entregue na v1.2.0
@@ -39,7 +38,7 @@ Este arquivo é o ponto de retomada entre sessões. Leia-o antes de iniciar uma 
 
 Validação em 16/10/2026: lint, 40 testes unitários, build e 18 cenários Playwright aprovados; axe não encontrou violações WCAG A/AA em desktop ou mobile; Lighthouse marcou performance 91, acessibilidade 100 e SEO 100; `npm audit` encontrou 0 vulnerabilidades. O GitHub Actions concluiu com sucesso tanto a publicação do site quanto a criação do release `v1.3.0`.
 
-## O que está pronto para a v1.4.0
+## O que foi entregue na v1.4.0
 
 - fases temporárias de renda ou despesa depois de parar, com valores mensais e idades de início e fim;
 - início inclusivo, fim exclusivo e soma explícita de fases simultâneas;
@@ -48,7 +47,7 @@ Validação em 16/10/2026: lint, 40 testes unitários, build e 18 cenários Play
 - número da liberdade preservado como alvo permanente, sem redução por renda temporária;
 - schema 4 com migração de links e dados das versões anteriores para lista vazia de fases.
 
-Validação local em 16/10/2026: lint, 45 testes unitários, build e 20 cenários Playwright aprovados; axe não encontrou violações WCAG A/AA; temas claro e escuro revisados em 390 × 844 pixels; `npm audit` encontrou 0 vulnerabilidades. O Lighthouse local sofreu tarefas longas atípicas e injeção conhecida do Kaspersky; os limites permanecem intactos e a CI limpa é obrigatória antes da publicação.
+Validação em 16/10/2026: lint, 45 testes unitários, build e 20 cenários Playwright aprovados; axe não encontrou violações WCAG A/AA; temas claro e escuro revisados em 390 × 844 pixels; `npm audit` encontrou 0 vulnerabilidades. O Lighthouse local sofreu tarefas longas atípicas e injeção conhecida do Kaspersky, sem redução dos limites; o runner limpo do GitHub Actions aprovou todos os gates e publicou o site.
 
 ## Evidências da validação
 
@@ -80,11 +79,10 @@ Os critérios completos e os casos manuais estão em [docs/VALIDACAO.md](docs/VA
 
 ## Pendências e próxima ordem de trabalho
 
-1. Publicar a `v1.4.0` somente se o pipeline limpo do GitHub Actions aprovar todos os gates, inclusive Lighthouse.
-2. Ativar manualmente o ruleset da branch `main` conforme [docs/GITHUB.md](docs/GITHUB.md): bloquear exclusão e `force push`, exigir o check `build` e a resolução de conversas.
-3. Observar a estabilidade dos gates nas próximas execuções reais da CI.
-4. Validar instalação e retomada offline da PWA em aparelhos físicos.
-5. Escolher a próxima evolução financeira do [roadmap](docs/ROADMAP.md) e documentar seu contrato antes de implementar.
+1. Ativar manualmente o ruleset da branch `main` conforme [docs/GITHUB.md](docs/GITHUB.md): bloquear exclusão e `force push`, exigir o check `build` e a resolução de conversas.
+2. Observar a estabilidade dos gates nas próximas execuções reais da CI.
+3. Validar instalação e retomada offline da PWA em aparelhos físicos.
+4. Escolher a próxima evolução financeira do [roadmap](docs/ROADMAP.md) e documentar seu contrato antes de implementar.
 
 A API pública do GitHub foi consultada em 16/10/2026 e não retornou rulesets ativos. A ativação é administrativa e não pode ser concluída sem acesso autenticado ao painel.
 

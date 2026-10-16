@@ -126,3 +126,5 @@ Em 16/10/2026, antes da publicação:
 - temas claro e escuro revisados visualmente em 390 × 844 pixels;
 - `npm audit --audit-level=moderate`: 0 vulnerabilidades;
 - o Lighthouse local sofreu tarefas longas atípicas e injeção conhecida do Kaspersky; os limites não foram reduzidos e a publicação exige aprovação no runner limpo do GitHub Actions.
+- GitHub Actions: pipeline `38918089806` aprovado, inclusive gates de Lighthouse, seguido de deploy no GitHub Pages;
+- release `v1.4.0`: workflow `38918426904` aprovado.
